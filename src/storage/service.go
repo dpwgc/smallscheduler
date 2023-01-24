@@ -8,7 +8,8 @@ func InitService() Service {
 
 type Service interface {
 	ListTaskToUser(appId uint64, env uint8, name string) ([]Task, error)
-	ListTaskToServer(partition string) ([]Task, error)
+	ListTaskToServer(cron string) ([]Task, error)
+	ListCron() ([]string, error)
 	SaveTask(task Task) error
 }
 
@@ -20,8 +21,12 @@ func (s *ServiceImpl) ListTaskToUser(appId uint64, env uint8, name string) ([]Ta
 	return s.repository.SelectTaskByApp(appId, env, name)
 }
 
-func (s *ServiceImpl) ListTaskToServer(partition string) ([]Task, error) {
-	return s.repository.SelectTaskByPartition(partition)
+func (s *ServiceImpl) ListTaskToServer(cron string) ([]Task, error) {
+	return s.repository.SelectTaskByCron(cron)
+}
+
+func (s *ServiceImpl) ListCron() ([]string, error) {
+	return s.repository.SelectCron()
 }
 
 func (s *ServiceImpl) SaveTask(task Task) error {

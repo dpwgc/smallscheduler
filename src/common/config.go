@@ -9,7 +9,8 @@ var Config configModel
 
 type configModel struct {
 	Server struct {
-		Port int `yaml:"port"`
+		Port      int    `yaml:"port"`
+		Partition uint16 `yaml:"partition"`
 	} `yaml:"server"`
 	Db struct {
 		Dsn string `yaml:"dsn"`

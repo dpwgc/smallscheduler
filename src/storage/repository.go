@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"alisa-dispatch-center/src/common"
 	"fmt"
 	"gorm.io/gorm"
 	"time"
@@ -8,13 +9,14 @@ import (
 
 func initRepository() Repository {
 	return &repositoryImpl{
-		DB: DBClient(),
+		DB: initDB(),
 	}
 }
 
 type Repository interface {
 	SelectTaskByApp(appId uint64, env uint8, name string) ([]Task, error)
-	SelectTaskByPartition(partition string) ([]Task, error)
+	SelectTaskByCron(cron string) ([]Task, error)
+	SelectCron() ([]string, error)
 	InsertTask(task Task) error
 	UpdateTask(task Task) error
 }
@@ -25,7 +27,7 @@ type repositoryImpl struct {
 
 func (r *repositoryImpl) SelectTaskByApp(appId uint64, env uint8, name string) ([]Task, error) {
 	var taskList []Task
-	sql := r.DB.Where("app_id = ? and status = ?", appId, 1)
+	sql := r.DB.Model(&Task{}).Where("app_id = ? and status = ?", appId, 1)
 	if env != 0 {
 		sql = sql.Where("env = ?", env)
 	}
@@ -36,17 +38,30 @@ func (r *repositoryImpl) SelectTaskByApp(appId uint64, env uint8, name string) (
 	return taskList, err
 }
 
-func (r *repositoryImpl) SelectTaskByPartition(partition string) ([]Task, error) {
+func (r *repositoryImpl) SelectTaskByCron(cron string) ([]Task, error) {
 	var taskList []Task
-	err := r.DB.Where("partition = ? and status = ?", partition, 1).Find(&taskList).Error
+	err := r.DB.Model(&Task{}).Where("cron = ? and partition = ? and status = ?", cron, common.Config.Server.Partition, 1).Find(&taskList).Error
 	return taskList, err
+}
+
+func (r *repositoryImpl) SelectCron() ([]string, error) {
+	var taskList []Task
+	var cronList []string
+	err := r.DB.Model(&Task{}).Where("status = ?", 1).Find(&taskList).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, task := range taskList {
+		cronList = append(cronList, task.Cron)
+	}
+	return cronList, err
 }
 
 func (r *repositoryImpl) InsertTask(task Task) error {
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = time.Now()
 	task.Status = 1
-	return DBClient().Create(&task).Error
+	return r.DB.Create(&task).Error
 }
 
 func (r *repositoryImpl) UpdateTask(task Task) error {

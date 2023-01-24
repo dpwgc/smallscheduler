@@ -8,9 +8,7 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-var db *gorm.DB
-
-func InitDB() {
+func initDB() *gorm.DB {
 	db, err := gorm.Open(mysql.Open(common.Config.Db.Dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true, // 使用单数表名
@@ -25,8 +23,5 @@ func InitDB() {
 		common.Log.Println(constant.LogErrorTag, err.Error())
 		panic(err)
 	}
-}
-
-func DBClient() *gorm.DB {
 	return db
 }
