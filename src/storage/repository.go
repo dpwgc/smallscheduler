@@ -14,8 +14,8 @@ func initRepository() Repository {
 }
 
 type Repository interface {
-	SelectTaskByApp(appId uint64, env uint8, name string) ([]Task, error)
-	SelectTaskByCron(cron string) ([]Task, error)
+	SelectTaskToUser(appId uint64, env uint8, name string) ([]Task, error)
+	SelectTaskByServer(cron string) ([]Task, error)
 	SelectCron() ([]string, error)
 	InsertTask(task Task) error
 	UpdateTask(task Task) error
@@ -25,7 +25,7 @@ type repositoryImpl struct {
 	DB *gorm.DB
 }
 
-func (r *repositoryImpl) SelectTaskByApp(appId uint64, env uint8, name string) ([]Task, error) {
+func (r *repositoryImpl) SelectTaskToUser(appId uint64, env uint8, name string) ([]Task, error) {
 	var taskList []Task
 	sql := r.DB.Model(&Task{}).Where("app_id = ? and status = ?", appId, 1)
 	if env != 0 {
@@ -38,16 +38,16 @@ func (r *repositoryImpl) SelectTaskByApp(appId uint64, env uint8, name string) (
 	return taskList, err
 }
 
-func (r *repositoryImpl) SelectTaskByCron(cron string) ([]Task, error) {
+func (r *repositoryImpl) SelectTaskByServer(cron string) ([]Task, error) {
 	var taskList []Task
-	err := r.DB.Model(&Task{}).Where("cron = ? and partition = ? and status = ?", cron, common.Config.Server.Partition, 1).Find(&taskList).Error
+	err := r.DB.Model(&Task{}).Where("cron = ? and partition_index = ? and status = ?", cron, common.Config.Server.PartitionIndex, 1).Find(&taskList).Error
 	return taskList, err
 }
 
 func (r *repositoryImpl) SelectCron() ([]string, error) {
 	var taskList []Task
 	var cronList []string
-	err := r.DB.Model(&Task{}).Where("status = ?", 1).Find(&taskList).Error
+	err := r.DB.Model(&Task{}).Select("cron").Where("status = ?", 1).Group("cron").Find(&taskList).Error
 	if err != nil {
 		return nil, err
 	}

@@ -40,7 +40,7 @@ func loadWorkers() {
 			continue
 		}
 		//创建工作者（协程定时任务）
-		var worker *cron.Cron
+		worker := newWithSeconds()
 		//装配函数
 		_, err = worker.AddFunc(cronStr, func() {
 			performTasks(cronStr)
@@ -54,4 +54,11 @@ func loadWorkers() {
 		//将该工作者装入工作者列表
 		workerMap.Store(cronStr, worker)
 	}
+}
+
+// 返回一个支持至 秒 级别的 cron
+func newWithSeconds() *cron.Cron {
+	secondParser := cron.NewParser(cron.Second | cron.Minute |
+		cron.Hour | cron.Dom | cron.Month | cron.DowOptional | cron.Descriptor)
+	return cron.New(cron.WithParser(secondParser), cron.WithChain())
 }

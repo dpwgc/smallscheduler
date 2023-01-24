@@ -18,11 +18,11 @@ type ServiceImpl struct {
 }
 
 func (s *ServiceImpl) ListTaskToUser(appId uint64, env uint8, name string) ([]Task, error) {
-	return s.repository.SelectTaskByApp(appId, env, name)
+	return s.repository.SelectTaskToUser(appId, env, name)
 }
 
 func (s *ServiceImpl) ListTaskToServer(cron string) ([]Task, error) {
-	return s.repository.SelectTaskByCron(cron)
+	return s.repository.SelectTaskByServer(cron)
 }
 
 func (s *ServiceImpl) ListCron() ([]string, error) {
