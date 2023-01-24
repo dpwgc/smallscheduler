@@ -11,6 +11,6 @@ func main() {
 	common.InitLog()
 	common.InitConfig()
 	storage.InitDB()
-	core.InitJob()
+	core.InitWorker()
 	ui.InitHttpRouter()
 }

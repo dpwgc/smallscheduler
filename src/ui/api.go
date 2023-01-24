@@ -3,7 +3,6 @@ package ui
 import (
 	"alisa-dispatch-center/src/common"
 	"alisa-dispatch-center/src/constant"
-	"alisa-dispatch-center/src/core"
 	"alisa-dispatch-center/src/storage"
 	"encoding/json"
 	"fmt"
@@ -14,8 +13,9 @@ import (
 )
 
 func initApi() Api {
-	service = core.InitService()
-	return &defaultApi{}
+	return &apiImpl{
+		service: storage.InitService(),
+	}
 }
 
 type Api interface {
@@ -23,11 +23,11 @@ type Api interface {
 	SaveTask(w http.ResponseWriter, r *http.Request, p httprouter.Params)
 }
 
-type defaultApi struct{}
+type apiImpl struct {
+	service storage.Service
+}
 
-var service core.Service
-
-func (a *defaultApi) ListTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a *apiImpl) ListTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	values := r.URL.Query()
 
 	appIdStr := values.Get("appId")
@@ -47,7 +47,7 @@ func (a *defaultApi) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 	}
 
 	name := values.Get("name")
-	list, err := service.ListTaskToUser(uint64(appId), uint8(env), name)
+	list, err := a.service.ListTaskToUser(uint64(appId), uint8(env), name)
 	if err != nil {
 		common.Log.Println(constant.LogErrorTag, err)
 		result(w, constant.HttpRequestFailCode, "", nil)
@@ -56,7 +56,7 @@ func (a *defaultApi) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 	result(w, constant.HttpRequestSuccessCode, "", list)
 }
 
-func (a *defaultApi) SaveTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (a *apiImpl) SaveTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	task := storage.Task{}
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -70,7 +70,7 @@ func (a *defaultApi) SaveTask(w http.ResponseWriter, r *http.Request, p httprout
 		result(w, constant.HttpRequestFailCode, fmt.Sprintf("parameter error: %s", err.Error()), nil)
 		return
 	}
-	err = service.SaveTask(task)
+	err = a.service.SaveTask(task)
 	if err != nil {
 		common.Log.Println(constant.LogErrorTag, err)
 		result(w, constant.HttpRequestFailCode, fmt.Sprintf("parameter error: %s", err.Error()), nil)

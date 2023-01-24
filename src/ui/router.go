@@ -17,7 +17,7 @@ func InitHttpRouter() {
 	r := httprouter.New()
 
 	r.GET(fmt.Sprintf("%s%s", constant.HttpUriPrefix, "/tasks"), middleware(api.ListTask))
-	r.PUT(fmt.Sprintf("%s%s", constant.HttpUriPrefix, "/task"), middleware(api.SaveTask))
+	r.PUT(fmt.Sprintf("%s%s", constant.HttpUriPrefix, "/core"), middleware(api.SaveTask))
 
 	//加载端口号
 	port := common.Config.Server.Port

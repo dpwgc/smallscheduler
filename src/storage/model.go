@@ -17,8 +17,9 @@ type Task struct {
 	GroupId     uint64 `gorm:"index:,;column:group_id;comment:group id;default:0;"`
 	AppId       uint64 `gorm:"index:,;column:app_id;comment:app id;default:0;"`
 	Env         uint8  `gorm:"column:env;comment:app environment;default:0;"`
-	Name        string `gorm:"column:name;type:varchar(127);comment:task name;default:'';"`
-	Remark      string `gorm:"column:remark;type:text;comment:task remark;default:'';"`
+	Partition   uint16 `gorm:"column:partition;comment:task partition;default:0;"`
+	Name        string `gorm:"column:name;type:varchar(127);comment:core name;default:'';"`
+	Remark      string `gorm:"column:remark;type:text;comment:core remark;default:'';"`
 	Cron        string `gorm:"index:,;column:cron;type:varchar(15);comment:cron;default:'';"`
 	Url         string `gorm:"column:url;type:text;comment:request url;default:'';"`
 	Method      string `gorm:"column:method;type:varchar(7);comment:request method;default:'';"`
