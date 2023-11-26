@@ -1,14 +1,14 @@
 package main
 
 import (
-	"alisa-dispatch-center/src/common"
+	"alisa-dispatch-center/src/api"
+	"alisa-dispatch-center/src/base"
 	"alisa-dispatch-center/src/core"
-	"alisa-dispatch-center/src/ui"
 )
 
 func main() {
-	common.InitLog()
-	common.InitConfig()
+	base.InitLog()
+	base.InitConfig()
 	core.InitWorkers()
-	ui.InitHttpRouter()
+	api.InitHttpRouter()
 }

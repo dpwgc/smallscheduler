@@ -1,25 +1,34 @@
 package core
 
 import (
-	"alisa-dispatch-center/src/common"
-	"alisa-dispatch-center/src/constant"
+	"alisa-dispatch-center/src/base"
 	"alisa-dispatch-center/src/storage"
 	"github.com/robfig/cron/v3"
+	"log"
 	"sync"
 	"time"
 )
 
+const (
+	TaskListRefreshCycle = time.Duration(1) * time.Second
+)
+
 var workerMap sync.Map
 
-var service storage.Service
+var service *storage.Service
 
 // InitWorkers 初始化工作者列表
 func InitWorkers() {
-	service = storage.InitService()
+	s, err := storage.NewService()
+	if err != nil {
+		log.Fatal(base.LogErrorTag, err)
+		return
+	}
+	service = s
 	go func() {
 		for {
 			loadWorkers()
-			time.Sleep(constant.TaskListRefreshCycle)
+			time.Sleep(TaskListRefreshCycle)
 		}
 	}()
 }
@@ -29,7 +38,7 @@ func loadWorkers() {
 	// 获取当前系统中的所有任务的cron表达式
 	cronList, err := service.ListCron()
 	if err != nil {
-		common.Log.Println(constant.LogErrorTag, err)
+		log.Println(base.LogErrorTag, err)
 		return
 	}
 	//为每个cron表达式生成一个工作者
@@ -43,10 +52,10 @@ func loadWorkers() {
 		worker := newWithSeconds()
 		//装配函数
 		_, err = worker.AddFunc(cronStr, func() {
-			performTasks(cronStr)
+			execute(cronStr)
 		})
 		if err != nil {
-			common.Log.Println(constant.LogErrorTag, err)
+			log.Println(base.LogErrorTag, err)
 			continue
 		}
 		//启动工作者

@@ -1,16 +1,18 @@
-package common
+package base
 
 import (
-	"alisa-dispatch-center/src/constant"
 	"gopkg.in/yaml.v3"
+	"log"
+	"os"
 )
+
+const ConfigFilePath = "./config.yaml"
 
 var Config configModel
 
 type configModel struct {
 	Server struct {
-		Port           int    `yaml:"port"`
-		PartitionIndex uint16 `yaml:"partition-index"`
+		Port int `yaml:"port"`
 	} `yaml:"server"`
 	Db struct {
 		Dsn string `yaml:"dsn"`
@@ -22,14 +24,14 @@ type configModel struct {
 
 func InitConfig() {
 	//加载客户端配置
-	configBytes, err := ReadFile(constant.ConfigFilePath)
+	configBytes, err := os.ReadFile(ConfigFilePath)
 	if err != nil {
-		Log.Println(constant.LogErrorTag, err)
+		log.Println(LogErrorTag, err)
 		panic(err)
 	}
 	err = yaml.Unmarshal(configBytes, &Config)
 	if err != nil {
-		Log.Println(constant.LogErrorTag, err)
+		log.Println(LogErrorTag, err)
 		panic(err)
 	}
 }

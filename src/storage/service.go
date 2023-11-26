@@ -1,39 +1,40 @@
 package storage
 
-func InitService() Service {
-	return &ServiceImpl{
-		repository: initRepository(),
-	}
+import (
+	"alisa-dispatch-center/src/storage/rdb"
+)
+
+func NewService() (*Service, error) {
+	repository, err := rdb.NewRepository()
+	return &Service{
+		repository: repository,
+	}, err
 }
 
-type Service interface {
-	ListTaskToUser(appId uint64, env uint8, name string) ([]Task, error)
-	ListTaskToServer(cron string) ([]Task, error)
-	ListCron() ([]string, error)
-	SaveTask(task Task) error
+type Service struct {
+	repository *rdb.Repository
 }
 
-type ServiceImpl struct {
-	repository Repository
+func (s *Service) ListTaskToUser(name string, status int, pageIndex int, pageSize int) ([]rdb.Task, int64, error) {
+	return s.repository.ListTaskToUser(name, status, pageIndex, pageSize)
 }
 
-func (s *ServiceImpl) ListTaskToUser(appId uint64, env uint8, name string) ([]Task, error) {
-	return s.repository.SelectTaskToUser(appId, env, name)
+func (s *Service) ListTaskToServer(cron string) ([]rdb.Task, error) {
+	return s.repository.ListTaskToServer(cron)
 }
 
-func (s *ServiceImpl) ListTaskToServer(cron string) ([]Task, error) {
-	return s.repository.SelectTaskByServer(cron)
+func (s *Service) ListCron() ([]string, error) {
+	return s.repository.ListCron()
 }
 
-func (s *ServiceImpl) ListCron() ([]string, error) {
-	return s.repository.SelectCron()
+func (s *Service) DoTask(task rdb.Task) (int64, error) {
+	return s.repository.DoTask(task)
 }
 
-func (s *ServiceImpl) SaveTask(task Task) error {
-	// update
-	if task.Id > 0 {
-		return s.repository.UpdateTask(task)
-	}
-	// insert
-	return s.repository.InsertTask(task)
+func (s *Service) SaveTask(task rdb.Task) error {
+	return s.repository.SaveTask(task)
+}
+
+func (s *Service) SaveRecord(record rdb.Record) error {
+	return s.repository.SaveRecord(record)
 }
