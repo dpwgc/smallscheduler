@@ -1,5 +1,6 @@
 server:
   port: 9088
+  context-path: /v1
 db:
   dsn: root:1130@tcp(127.0.0.1:3306)/alisa_dispatch_center?charset=utf8mb4&parseTime=True&loc=Local
 log:

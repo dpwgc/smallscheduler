@@ -8,11 +8,12 @@ import (
 
 const ConfigFilePath = "./config.yaml"
 
-var Config configModel
+var config ConfigModel
 
-type configModel struct {
+type ConfigModel struct {
 	Server struct {
-		Port int `yaml:"port"`
+		Port        int    `yaml:"port"`
+		ContextPath string `yaml:"context-path"`
 	} `yaml:"server"`
 	Db struct {
 		Dsn string `yaml:"dsn"`
@@ -22,6 +23,10 @@ type configModel struct {
 	} `yaml:"log"`
 }
 
+func Config() ConfigModel {
+	return config
+}
+
 func InitConfig() {
 	//加载客户端配置
 	configBytes, err := os.ReadFile(ConfigFilePath)
@@ -29,7 +34,7 @@ func InitConfig() {
 		log.Println(LogErrorTag, err)
 		panic(err)
 	}
-	err = yaml.Unmarshal(configBytes, &Config)
+	err = yaml.Unmarshal(configBytes, &config)
 	if err != nil {
 		log.Println(LogErrorTag, err)
 		panic(err)

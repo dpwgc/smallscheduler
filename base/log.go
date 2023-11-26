@@ -17,9 +17,9 @@ const (
 func InitLog() {
 	writer, _ := rotatelogs.New(
 		LogFilePath,
-		rotatelogs.WithMaxAge(time.Duration(Config.Log.FileMaxAge*24)*time.Hour),
+		rotatelogs.WithMaxAge(time.Duration(Config().Log.FileMaxAge*24)*time.Hour),
 		rotatelogs.WithRotationTime(LogFileRotationTime),
 	)
-	log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.Llongfile | log.Lmicroseconds | log.Ldate)
 	log.SetOutput(writer)
 }

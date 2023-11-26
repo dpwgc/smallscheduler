@@ -1,14 +1,14 @@
 package core
 
 import (
-	"alisa-dispatch-center/src/base"
-	"alisa-dispatch-center/src/storage/rdb"
 	"encoding/json"
 	"errors"
 	"github.com/robfig/cron/v3"
 	"io"
 	"log"
 	"net/http"
+	"smallscheduler/base"
+	"smallscheduler/storage"
 	"strings"
 )
 
@@ -20,21 +20,18 @@ const (
 // 批量执行任务
 func execute(cronStr string) {
 	//获取该cron的所有任务
-	taskList, err := service.ListTaskToServer(cronStr)
-	if err != nil {
-		log.Println(base.LogErrorTag, err)
-		return
-	}
+	taskCache, _ := taskCachePool.Load(cronStr)
+	taskList := taskCache.([]storage.Task)
 	//如果任务列表长度为0，则删除该工作者
 	if len(taskList) == 0 {
-		worker, _ := workerMap.Load(cronStr)
+		worker, _ := workerFactory.Load(cronStr)
 		worker.(*cron.Cron).Stop()
-		workerMap.Delete(cronStr)
+		workerFactory.Delete(cronStr)
 	}
 	//循环请求
 	for _, task := range taskList {
-		go func(task rdb.Task) {
-			i, err := service.DoTask(task)
+		go func(task storage.Task) {
+			i, err := service.ExecuteTask(task)
 			if err != nil {
 				log.Println(base.LogErrorTag, err)
 				return
@@ -42,14 +39,19 @@ func execute(cronStr string) {
 			if i == 0 {
 				return
 			}
-			resp, err := request(task.Method, task.Url, task.Body, task.Header)
-			if err != nil {
-				log.Println(base.LogErrorTag, err)
-			}
-			err = service.SaveRecord(rdb.Record{
+			record := storage.Record{
 				TaskId: task.Id,
-				Result: string(resp),
-			})
+			}
+			response, err := request(task.Method, task.Url, task.Body, task.Header)
+			if err != nil {
+				record.Status = 2
+				record.Result = err.Error()
+				log.Println(base.LogErrorTag, err)
+			} else {
+				record.Status = 1
+				record.Result = string(response)
+			}
+			err = service.SaveRecord(record)
 			if err != nil {
 				log.Println(base.LogErrorTag, err)
 			}
@@ -59,7 +61,7 @@ func execute(cronStr string) {
 
 func request(method, url, body, header string) ([]byte, error) {
 	if method != Post && method != Get {
-		return nil, errors.New("method error")
+		return nil, errors.New("method is not match")
 	}
 	payload := strings.NewReader(body)
 	req, err := http.NewRequest(method, url, payload)
@@ -69,7 +71,7 @@ func request(method, url, body, header string) ([]byte, error) {
 	if method == Post {
 		req.Header.Add("Content-Type", "application/json")
 	}
-	if len(header) > 0 {
+	if len(header) > 2 {
 		var headerMap map[string]string
 		err = json.Unmarshal([]byte(header), &headerMap)
 		if err != nil {
@@ -85,8 +87,8 @@ func request(method, url, body, header string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
+	defer func(body io.ReadCloser) {
+		err = body.Close()
 		if err != nil {
 			log.Println(base.LogErrorTag, err)
 		}

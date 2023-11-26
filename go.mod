@@ -1,4 +1,4 @@
-module alisa-dispatch-center
+module smallscheduler
 
 go 1.18
 

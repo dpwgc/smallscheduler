@@ -1,9 +1,9 @@
 package main
 
 import (
-	"alisa-dispatch-center/src/api"
-	"alisa-dispatch-center/src/base"
-	"alisa-dispatch-center/src/core"
+	"smallscheduler/api"
+	"smallscheduler/base"
+	"smallscheduler/core"
 )
 
 func main() {

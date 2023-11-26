@@ -1,14 +1,13 @@
 package api
 
 import (
-	"alisa-dispatch-center/src/base"
-	"alisa-dispatch-center/src/storage"
-	"alisa-dispatch-center/src/storage/rdb"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"io"
 	"log"
 	"net/http"
+	"smallscheduler/base"
+	"smallscheduler/storage"
 	"strconv"
 )
 
@@ -37,7 +36,7 @@ func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 	pageIndex, _ := strconv.Atoi(values.Get("pageIndex"))
 	pageSize, _ := strconv.Atoi(values.Get("pageSize"))
 
-	list, total, err := c.service.ListTaskToUser(name, status, pageIndex, pageSize)
+	list, total, err := c.service.ListTask(name, status, pageIndex, pageSize)
 	if err != nil {
 		c.error(w, ServiceErrorCode, err.Error())
 		return
@@ -63,6 +62,24 @@ func (c *Controller) SaveTask(w http.ResponseWriter, r *http.Request, p httprout
 		return
 	}
 	c.success(w, nil)
+}
+
+func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	values := r.URL.Query()
+
+	taskId, _ := strconv.ParseInt(values.Get("taskId"), 10, 64)
+	status, _ := strconv.Atoi(values.Get("status"))
+	startTime := values.Get("startTime")
+	endTime := values.Get("endTime")
+	pageIndex, _ := strconv.Atoi(values.Get("pageIndex"))
+	pageSize, _ := strconv.Atoi(values.Get("pageSize"))
+
+	list, total, err := c.service.ListRecord(taskId, status, startTime, endTime, pageIndex, pageSize)
+	if err != nil {
+		c.error(w, ServiceErrorCode, err.Error())
+		return
+	}
+	c.success(w, c.buildRecordPageDTO(list, total))
 }
 
 func (c *Controller) success(w http.ResponseWriter, data any) {
@@ -92,7 +109,7 @@ func (c *Controller) error(w http.ResponseWriter, code int16, msg string) {
 	}
 }
 
-func (c *Controller) buildTaskPageDTO(list []rdb.Task, total int64) TaskPageDTO {
+func (c *Controller) buildTaskPageDTO(list []storage.Task, total int64) PageDTO {
 	var dtoList []TaskDTO
 	if len(list) > 0 {
 		for _, v := range list {
@@ -111,14 +128,33 @@ func (c *Controller) buildTaskPageDTO(list []rdb.Task, total int64) TaskPageDTO 
 			})
 		}
 	}
-	return TaskPageDTO{
+	return PageDTO{
 		Total: total,
 		List:  dtoList,
 	}
 }
 
-func (c *Controller) buildTask(command TaskCommand) rdb.Task {
-	return rdb.Task{
+func (c *Controller) buildRecordPageDTO(list []storage.Record, total int64) PageDTO {
+	var dtoList []RecordDTO
+	if len(list) > 0 {
+		for _, v := range list {
+			dtoList = append(dtoList, RecordDTO{
+				Id:         v.Id,
+				Status:     v.Status,
+				TaskId:     v.TaskId,
+				Result:     v.Result,
+				ExecutedAt: v.ExecutedAt.UnixMilli(),
+			})
+		}
+	}
+	return PageDTO{
+		Total: total,
+		List:  dtoList,
+	}
+}
+
+func (c *Controller) buildTask(command TaskCommand) storage.Task {
+	return storage.Task{
 		Id:     command.Id,
 		Status: command.Status,
 		Name:   command.Name,
@@ -130,9 +166,9 @@ func (c *Controller) buildTask(command TaskCommand) rdb.Task {
 	}
 }
 
-type TaskPageDTO struct {
-	Total int64     `json:"total"`
-	List  []TaskDTO `json:"list"`
+type PageDTO struct {
+	Total int64 `json:"total"`
+	List  any   `json:"list"`
 }
 
 type ResultDTO struct {
@@ -142,7 +178,7 @@ type ResultDTO struct {
 }
 
 type TaskCommand struct {
-	Id     uint64 `json:"id"`
+	Id     int64  `json:"id"`
 	Status int32  `json:"status"`
 	Name   string `json:"name"`
 	Cron   string `json:"cron"`
@@ -153,7 +189,7 @@ type TaskCommand struct {
 }
 
 type TaskDTO struct {
-	Id        uint64 `json:"id"`
+	Id        int64  `json:"id"`
 	Status    int32  `json:"status"`
 	Name      string `json:"name"`
 	Cron      string `json:"cron"`
@@ -161,7 +197,15 @@ type TaskDTO struct {
 	Method    string `json:"method"`
 	Body      string `json:"body"`
 	Header    string `json:"header"`
-	Total     uint64 `json:"total"`
-	CreatedAt int64  `json:"created_at"`
-	UpdatedAt int64  `json:"updated_at"`
+	Total     int64  `json:"total"`
+	CreatedAt int64  `json:"createdAt"`
+	UpdatedAt int64  `json:"updatedAt"`
+}
+
+type RecordDTO struct {
+	Id         int64  `json:"id"`
+	TaskId     int64  `json:"taskId"`
+	ExecutedAt int64  `json:"executedAt"`
+	Result     string `json:"result"`
+	Status     int32  `json:"status"`
 }
