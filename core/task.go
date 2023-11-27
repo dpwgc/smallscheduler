@@ -31,7 +31,7 @@ func execute(cronStr string) {
 	//循环请求
 	for _, task := range taskList {
 		go func(task storage.Task) {
-			i, err := service.ExecuteTask(task)
+			i, err := service.ExecuteTask(task.Id)
 			if err != nil {
 				log.Println(base.LogErrorTag, err)
 				return
@@ -46,7 +46,6 @@ func execute(cronStr string) {
 			if err != nil {
 				record.Status = 2
 				record.Result = err.Error()
-				log.Println(base.LogErrorTag, err)
 			} else {
 				record.Status = 1
 				record.Result = string(response)

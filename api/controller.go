@@ -113,6 +113,13 @@ func (c *Controller) buildTaskPageDTO(list []storage.Task, total int64) PageDTO 
 	var dtoList []TaskDTO
 	if len(list) > 0 {
 		for _, v := range list {
+			headerObj := map[string]string{}
+			if len(v.Header) > 0 {
+				err := json.Unmarshal([]byte(v.Header), &headerObj)
+				if err != nil {
+					headerObj = nil
+				}
+			}
 			dtoList = append(dtoList, TaskDTO{
 				Id:        v.Id,
 				Status:    v.Status,
@@ -121,7 +128,7 @@ func (c *Controller) buildTaskPageDTO(list []storage.Task, total int64) PageDTO 
 				Url:       v.Url,
 				Method:    v.Method,
 				Body:      v.Body,
-				Header:    v.Header,
+				Header:    headerObj,
 				Total:     v.Total,
 				CreatedAt: v.CreatedAt.UnixMilli(),
 				UpdatedAt: v.UpdatedAt.UnixMilli(),
@@ -154,6 +161,13 @@ func (c *Controller) buildRecordPageDTO(list []storage.Record, total int64) Page
 }
 
 func (c *Controller) buildTask(command TaskCommand) storage.Task {
+	headerJson := ""
+	if len(command.Header) > 0 {
+		headerBytes, err := json.Marshal(command.Header)
+		if err == nil {
+			headerJson = string(headerBytes)
+		}
+	}
 	return storage.Task{
 		Id:     command.Id,
 		Status: command.Status,
@@ -162,7 +176,7 @@ func (c *Controller) buildTask(command TaskCommand) storage.Task {
 		Url:    command.Url,
 		Method: command.Method,
 		Body:   command.Body,
-		Header: command.Header,
+		Header: headerJson,
 	}
 }
 
@@ -178,28 +192,28 @@ type ResultDTO struct {
 }
 
 type TaskCommand struct {
-	Id     int64  `json:"id"`
-	Status int32  `json:"status"`
-	Name   string `json:"name"`
-	Cron   string `json:"cron"`
-	Url    string `json:"url"`
-	Method string `json:"method"`
-	Body   string `json:"body"`
-	Header string `json:"header"`
+	Id     int64             `json:"id"`
+	Status int32             `json:"status"`
+	Name   string            `json:"name"`
+	Cron   string            `json:"cron"`
+	Url    string            `json:"url"`
+	Method string            `json:"method"`
+	Body   string            `json:"body"`
+	Header map[string]string `json:"header"`
 }
 
 type TaskDTO struct {
-	Id        int64  `json:"id"`
-	Status    int32  `json:"status"`
-	Name      string `json:"name"`
-	Cron      string `json:"cron"`
-	Url       string `json:"url"`
-	Method    string `json:"method"`
-	Body      string `json:"body"`
-	Header    string `json:"header"`
-	Total     int64  `json:"total"`
-	CreatedAt int64  `json:"createdAt"`
-	UpdatedAt int64  `json:"updatedAt"`
+	Id        int64             `json:"id"`
+	Status    int32             `json:"status"`
+	Name      string            `json:"name"`
+	Cron      string            `json:"cron"`
+	Url       string            `json:"url"`
+	Method    string            `json:"method"`
+	Body      string            `json:"body"`
+	Header    map[string]string `json:"header"`
+	Total     int64             `json:"total"`
+	CreatedAt int64             `json:"createdAt"`
+	UpdatedAt int64             `json:"updatedAt"`
 }
 
 type RecordDTO struct {

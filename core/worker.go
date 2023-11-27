@@ -27,7 +27,7 @@ func InitWorkers() {
 		return
 	}
 	service = s
-	var version uint64 = 0
+	var version int64 = -1
 	taskEditVersion.Store(version)
 	go func() {
 		for {

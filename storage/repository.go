@@ -57,7 +57,12 @@ func (r *Repository) ListStartedCron() ([]string, error) {
 	return cronList, err
 }
 
-func (r *Repository) ExecuteTask(task Task) (int64, error) {
+func (r *Repository) ExecuteTask(id int64) (int64, error) {
+	task := Task{}
+	err := r.DB.Model(&Task{}).Select("id", "total").Where("id = ?", id).First(&task).Error
+	if err != nil {
+		return 0, err
+	}
 	task.UpdatedAt = time.Now()
 	sql := r.DB.Table("task").Where("id = ? and total = ?", task.Id, task.Total).UpdateColumn("total", gorm.Expr("total + ?", 1))
 	if sql.Error != nil {

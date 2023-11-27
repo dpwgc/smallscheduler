@@ -23,8 +23,8 @@ func (s *Service) ListStartedCron() ([]string, error) {
 	return s.repository.ListStartedCron()
 }
 
-func (s *Service) ExecuteTask(task Task) (int64, error) {
-	return s.repository.ExecuteTask(task)
+func (s *Service) ExecuteTask(id int64) (int64, error) {
+	return s.repository.ExecuteTask(id)
 }
 
 func (s *Service) SaveTask(task Task) error {
