@@ -38,27 +38,58 @@ func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 
 	list, total, err := c.service.ListTask(name, status, pageIndex, pageSize)
 	if err != nil {
-		c.error(w, ServiceErrorCode, err.Error())
+		c.fail(w, ServiceErrorCode, err.Error())
 		return
 	}
 	c.success(w, c.buildTaskPageDTO(list, total))
 }
 
-func (c *Controller) SaveTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c *Controller) GetTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
+	task, err := c.service.GetTask(id)
+	if err != nil {
+		c.fail(w, ServiceErrorCode, err.Error())
+		return
+	}
+	c.success(w, c.buildTaskDTO(task))
+}
+
+func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	cmd := TaskCommand{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.error(w, ParameterErrorCode, err.Error())
+		c.fail(w, ParameterErrorCode, err.Error())
 		return
 	}
 	err = json.Unmarshal(body, &cmd)
 	if err != nil {
-		c.error(w, ParameterErrorCode, err.Error())
+		c.fail(w, ParameterErrorCode, err.Error())
 		return
 	}
-	err = c.service.SaveTask(c.buildTask(cmd))
+	err = c.service.SaveTask(c.buildTask(0, cmd))
 	if err != nil {
-		c.error(w, ServiceErrorCode, err.Error())
+		c.fail(w, ServiceErrorCode, err.Error())
+		return
+	}
+	c.success(w, nil)
+}
+
+func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
+	cmd := TaskCommand{}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.fail(w, ParameterErrorCode, err.Error())
+		return
+	}
+	err = json.Unmarshal(body, &cmd)
+	if err != nil {
+		c.fail(w, ParameterErrorCode, err.Error())
+		return
+	}
+	err = c.service.SaveTask(c.buildTask(id, cmd))
+	if err != nil {
+		c.fail(w, ServiceErrorCode, err.Error())
 		return
 	}
 	c.success(w, nil)
@@ -68,7 +99,7 @@ func (c *Controller) RemoveTask(w http.ResponseWriter, r *http.Request, p httpro
 	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
 	err := c.service.RemoveTask(id)
 	if err != nil {
-		c.error(w, ServiceErrorCode, err.Error())
+		c.fail(w, ServiceErrorCode, err.Error())
 		return
 	}
 	c.success(w, nil)
@@ -86,7 +117,7 @@ func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httpro
 
 	list, total, err := c.service.ListRecord(taskId, status, startTime, endTime, pageIndex, pageSize)
 	if err != nil {
-		c.error(w, ServiceErrorCode, err.Error())
+		c.fail(w, ServiceErrorCode, err.Error())
 		return
 	}
 	c.success(w, c.buildRecordPageDTO(list, total))
@@ -106,7 +137,7 @@ func (c *Controller) success(w http.ResponseWriter, data any) {
 	}
 }
 
-func (c *Controller) error(w http.ResponseWriter, code int16, msg string) {
+func (c *Controller) fail(w http.ResponseWriter, code int16, msg string) {
 	result := ResultDTO{
 		Code: code,
 		Msg:  msg,
@@ -116,6 +147,29 @@ func (c *Controller) error(w http.ResponseWriter, code int16, msg string) {
 	if err != nil {
 		log.Println(base.LogErrorTag, err)
 		return
+	}
+}
+
+func (c *Controller) buildTaskDTO(task storage.Task) TaskDTO {
+	headerObj := map[string]string{}
+	if len(task.Header) > 0 {
+		err := json.Unmarshal([]byte(task.Header), &headerObj)
+		if err != nil {
+			headerObj = nil
+		}
+	}
+	return TaskDTO{
+		Id:        task.Id,
+		Status:    task.Status,
+		Name:      task.Name,
+		Cron:      task.Cron,
+		Url:       task.Url,
+		Method:    task.Method,
+		Body:      task.Body,
+		Header:    headerObj,
+		Total:     task.Total,
+		CreatedAt: task.CreatedAt.UnixMilli(),
+		UpdatedAt: task.UpdatedAt.UnixMilli(),
 	}
 }
 
@@ -170,7 +224,7 @@ func (c *Controller) buildRecordPageDTO(list []storage.Record, total int64) Page
 	}
 }
 
-func (c *Controller) buildTask(command TaskCommand) storage.Task {
+func (c *Controller) buildTask(id int64, command TaskCommand) storage.Task {
 	headerJson := ""
 	if len(command.Header) > 0 {
 		headerBytes, err := json.Marshal(command.Header)
@@ -179,7 +233,7 @@ func (c *Controller) buildTask(command TaskCommand) storage.Task {
 		}
 	}
 	return storage.Task{
-		Id:     command.Id,
+		Id:     id,
 		Status: command.Status,
 		Name:   command.Name,
 		Cron:   command.Cron,
@@ -202,7 +256,6 @@ type ResultDTO struct {
 }
 
 type TaskCommand struct {
-	Id     int64             `json:"id"`
 	Status int32             `json:"status"`
 	Name   string            `json:"name"`
 	Cron   string            `json:"cron"`

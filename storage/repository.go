@@ -27,8 +27,6 @@ func (r *Repository) ListTask(name string, status int, pageIndex int, pageSize i
 	sql := r.DB.Model(&Task{})
 	if status != 0 {
 		sql = sql.Where("status = ?", status)
-	} else {
-		sql = sql.Where("status > ?", 0)
 	}
 	if len(name) > 0 {
 		sql = sql.Where(fmt.Sprintf("name like %q", "%"+name+"%"))
@@ -37,6 +35,15 @@ func (r *Repository) ListTask(name string, status int, pageIndex int, pageSize i
 	sql = sql.Order("id desc").Limit(pageSize).Offset((pageIndex - 1) * pageSize)
 	err := sql.Find(&taskList).Error
 	return taskList, total, err
+}
+
+func (r *Repository) GetTask(id int64) (Task, error) {
+	var task Task
+	err := r.DB.Model(&Task{}).Where("id = ?", id).First(&task).Error
+	if err != nil {
+		return Task{}, err
+	}
+	return task, nil
 }
 
 func (r *Repository) ListStartedTaskByCron(cron string) ([]Task, error) {

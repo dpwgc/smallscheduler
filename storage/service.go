@@ -15,6 +15,10 @@ func (s *Service) ListTask(name string, status int, pageIndex int, pageSize int)
 	return s.repository.ListTask(name, status, pageIndex, pageSize)
 }
 
+func (s *Service) GetTask(id int64) (Task, error) {
+	return s.repository.GetTask(id)
+}
+
 func (s *Service) ListStartedTaskByCron(cron string) ([]Task, error) {
 	return s.repository.ListStartedTaskByCron(cron)
 }
