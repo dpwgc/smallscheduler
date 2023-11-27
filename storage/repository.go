@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -74,12 +75,19 @@ func (r *Repository) ExecuteTask(id int64) (int64, error) {
 func (r *Repository) SaveTask(task Task) error {
 	task.UpdatedAt = time.Now()
 	if task.Id > 0 {
-		return r.DB.Table("task").Updates(&task).Error
+		return r.DB.Table("task").Where("id = ?", task.Id).Updates(&task).Error
 	} else {
 		task.CreatedAt = task.UpdatedAt
 		task.Status = 1
 		return r.DB.Table("task").Create(&task).Error
 	}
+}
+
+func (r *Repository) RemoveTask(id int64) error {
+	if id <= 0 {
+		return errors.New("id is abnormal")
+	}
+	return r.DB.Table("task").Delete(Task{}, id).Error
 }
 
 func (r *Repository) SaveRecord(record Record) error {

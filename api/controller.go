@@ -64,6 +64,16 @@ func (c *Controller) SaveTask(w http.ResponseWriter, r *http.Request, p httprout
 	c.success(w, nil)
 }
 
+func (c *Controller) RemoveTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
+	err := c.service.RemoveTask(id)
+	if err != nil {
+		c.error(w, ServiceErrorCode, err.Error())
+		return
+	}
+	c.success(w, nil)
+}
+
 func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	values := r.URL.Query()
 

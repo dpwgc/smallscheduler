@@ -35,6 +35,10 @@ func (s *Service) SaveTask(task Task) error {
 	return s.repository.SaveTask(task)
 }
 
+func (s *Service) RemoveTask(id int64) error {
+	return s.repository.RemoveTask(id)
+}
+
 func (s *Service) SaveRecord(record Record) error {
 	return s.repository.SaveRecord(record)
 }

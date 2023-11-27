@@ -21,6 +21,8 @@ func InitHttpRouter() {
 
 	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/tasks"), middleware(controller.ListTask))
 	router.PUT(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/task"), middleware(controller.SaveTask))
+	router.DELETE(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/task/:id"), middleware(controller.RemoveTask))
+	router.PUT(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/records"), middleware(controller.ListRecord))
 
 	port := base.Config().Server.Port
 	err = http.ListenAndServe(fmt.Sprintf(":%v", port), router)
