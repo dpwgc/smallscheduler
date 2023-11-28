@@ -28,5 +28,5 @@ type Record struct {
 	TaskId     int64     `gorm:"column:task_id;index:idx_task_id;not null;"`
 	ExecutedAt time.Time `gorm:"column:executed_at;index:idx_executed_at;not null;default:CURRENT_TIMESTAMP;"`
 	Result     string    `gorm:"column:result;not null;type:text;default:'';"`
-	Status     int32     `gorm:"column:status;not null;default:1;"`
+	Code       int32     `gorm:"column:code;not null;default:0;"`
 }

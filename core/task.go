@@ -42,12 +42,12 @@ func execute(cronStr string) {
 			record := storage.Record{
 				TaskId: task.Id,
 			}
-			response, err := request(task.Method, task.Url, task.Body, task.Header)
+			response, code, err := request(task.Method, task.Url, task.Body, task.Header)
 			if err != nil {
-				record.Status = 2
+				record.Code = -1
 				record.Result = err.Error()
 			} else {
-				record.Status = 1
+				record.Code = int32(code)
 				record.Result = string(response)
 			}
 			err = service.SaveRecord(record)
@@ -58,14 +58,14 @@ func execute(cronStr string) {
 	}
 }
 
-func request(method, url, body, header string) ([]byte, error) {
+func request(method, url, body, header string) ([]byte, int, error) {
 	if method != Post && method != Get {
-		return nil, errors.New("method is not match")
+		return nil, 0, errors.New("method is not match")
 	}
 	payload := strings.NewReader(body)
 	req, err := http.NewRequest(method, url, payload)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	if method == Post {
 		req.Header.Add("Content-Type", "application/json")
@@ -74,7 +74,7 @@ func request(method, url, body, header string) ([]byte, error) {
 		var headerMap map[string]string
 		err = json.Unmarshal([]byte(header), &headerMap)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		if len(headerMap) > 0 {
 			for k, v := range headerMap {
@@ -84,7 +84,7 @@ func request(method, url, body, header string) ([]byte, error) {
 	}
 	response, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer func(body io.ReadCloser) {
 		err = body.Close()
@@ -92,5 +92,9 @@ func request(method, url, body, header string) ([]byte, error) {
 			log.Println(base.LogErrorTag, err)
 		}
 	}(response.Body)
-	return io.ReadAll(response.Body)
+	resultBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, 0, err
+	}
+	return resultBytes, response.StatusCode, nil
 }

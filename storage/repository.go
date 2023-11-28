@@ -90,7 +90,7 @@ func (r *Repository) SaveTask(task Task) error {
 	}
 }
 
-func (r *Repository) RemoveTask(id int64) error {
+func (r *Repository) DeleteTask(id int64) error {
 	if id <= 0 {
 		return errors.New("id is abnormal")
 	}
@@ -102,13 +102,10 @@ func (r *Repository) SaveRecord(record Record) error {
 	return r.DB.Table("record").Create(&record).Error
 }
 
-func (r *Repository) ListRecord(taskId int64, status int, startTime string, endTime string, pageIndex int, pageSize int) ([]Record, int64, error) {
+func (r *Repository) ListRecord(taskId int64, startTime string, endTime string, pageIndex int, pageSize int) ([]Record, int64, error) {
 	var recordList []Record
 	var total int64
 	sql := r.DB.Model(&Record{}).Where("task_id = ?", taskId)
-	if status != 0 {
-		sql = sql.Where("status = ?", status)
-	}
 	if len(startTime) > 0 {
 		sql = sql.Where("executed_at >= ?", startTime)
 	}

@@ -39,16 +39,16 @@ func (s *Service) SaveTask(task Task) error {
 	return s.repository.SaveTask(task)
 }
 
-func (s *Service) RemoveTask(id int64) error {
-	return s.repository.RemoveTask(id)
+func (s *Service) DeleteTask(id int64) error {
+	return s.repository.DeleteTask(id)
 }
 
 func (s *Service) SaveRecord(record Record) error {
 	return s.repository.SaveRecord(record)
 }
 
-func (s *Service) ListRecord(taskId int64, status int, startTime string, endTime string, pageIndex int, pageSize int) ([]Record, int64, error) {
-	return s.repository.ListRecord(taskId, status, startTime, endTime, pageIndex, pageSize)
+func (s *Service) ListRecord(taskId int64, startTime string, endTime string, pageIndex int, pageSize int) ([]Record, int64, error) {
+	return s.repository.ListRecord(taskId, startTime, endTime, pageIndex, pageSize)
 }
 
 func (s *Service) GetTaskEditVersion() (int64, error) {

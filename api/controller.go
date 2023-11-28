@@ -95,9 +95,9 @@ func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprout
 	c.success(w, nil)
 }
 
-func (c *Controller) RemoveTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c *Controller) DeleteTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
-	err := c.service.RemoveTask(id)
+	err := c.service.DeleteTask(id)
 	if err != nil {
 		c.fail(w, ServiceErrorCode, err.Error())
 		return
@@ -109,13 +109,12 @@ func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httpro
 	values := r.URL.Query()
 
 	taskId, _ := strconv.ParseInt(values.Get("taskId"), 10, 64)
-	status, _ := strconv.Atoi(values.Get("status"))
 	startTime := values.Get("startTime")
 	endTime := values.Get("endTime")
 	pageIndex, _ := strconv.Atoi(values.Get("pageIndex"))
 	pageSize, _ := strconv.Atoi(values.Get("pageSize"))
 
-	list, total, err := c.service.ListRecord(taskId, status, startTime, endTime, pageIndex, pageSize)
+	list, total, err := c.service.ListRecord(taskId, startTime, endTime, pageIndex, pageSize)
 	if err != nil {
 		c.fail(w, ServiceErrorCode, err.Error())
 		return
@@ -211,9 +210,9 @@ func (c *Controller) buildRecordPageDTO(list []storage.Record, total int64) Page
 		for _, v := range list {
 			dtoList = append(dtoList, RecordDTO{
 				Id:         v.Id,
-				Status:     v.Status,
 				TaskId:     v.TaskId,
 				Result:     v.Result,
+				Code:       v.Code,
 				ExecutedAt: v.ExecutedAt.UnixMilli(),
 			})
 		}
@@ -284,5 +283,5 @@ type RecordDTO struct {
 	TaskId     int64  `json:"taskId"`
 	ExecutedAt int64  `json:"executedAt"`
 	Result     string `json:"result"`
-	Status     int32  `json:"status"`
+	Code       int32  `json:"code"`
 }
