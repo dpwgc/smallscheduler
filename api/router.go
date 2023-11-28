@@ -28,6 +28,8 @@ func InitHttpRouter() {
 
 	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/records"), middleware(controller.ListRecord))
 
+	router.ServeFiles(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/web/*filepath"), http.Dir("web"))
+
 	port := base.Config().Server.Port
 	err = http.ListenAndServe(fmt.Sprintf(":%v", port), router)
 	if err != nil {
