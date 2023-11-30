@@ -43,8 +43,8 @@ func (s *Service) DeleteTask(id int64) error {
 	return s.repository.DeleteTask(id)
 }
 
-func (s *Service) SaveRecord(record Record) error {
-	return s.repository.SaveRecord(record)
+func (s *Service) AddRecord(record Record) error {
+	return s.repository.AddRecord(record)
 }
 
 func (s *Service) ListRecord(taskId int64, startTime string, endTime string, pageIndex int, pageSize int) ([]Record, int64, error) {

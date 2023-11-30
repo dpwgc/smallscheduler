@@ -97,8 +97,7 @@ func (r *Repository) DeleteTask(id int64) error {
 	return r.DB.Table("task").Delete(Task{}, id).Error
 }
 
-func (r *Repository) SaveRecord(record Record) error {
-	record.ExecutedAt = time.Now()
+func (r *Repository) AddRecord(record Record) error {
 	return r.DB.Table("record").Create(&record).Error
 }
 

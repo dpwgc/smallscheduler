@@ -2,7 +2,7 @@ package core
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"github.com/robfig/cron/v3"
 	"io"
 	"log"
@@ -10,6 +10,7 @@ import (
 	"smallscheduler/base"
 	"smallscheduler/storage"
 	"strings"
+	"time"
 )
 
 const (
@@ -40,17 +41,14 @@ func execute(cronStr string) {
 				return
 			}
 			record := storage.Record{
-				TaskId: task.Id,
+				TaskId:     task.Id,
+				ExecutedAt: time.Now(),
 			}
-			response, code, err := request(task.Method, task.Url, task.Body, task.Header)
-			if err != nil {
-				record.Code = -1
-				record.Result = err.Error()
-			} else {
-				record.Code = int32(code)
-				record.Result = string(response)
-			}
-			err = service.SaveRecord(record)
+			code, timeCost, result := request(task.Method, task.Url, task.Body, task.Header)
+			record.Result = result
+			record.Code = int32(code)
+			record.TimeCost = int32(timeCost)
+			err = service.AddRecord(record)
 			if err != nil {
 				log.Println(base.LogErrorTag, err)
 			}
@@ -58,14 +56,17 @@ func execute(cronStr string) {
 	}
 }
 
-func request(method, url, body, header string) ([]byte, int, error) {
+func request(method, url, body, header string) (int, int64, string) {
 	if method != Post && method != Get {
-		return nil, 0, errors.New("method is not match")
+		return -1, 0, "http method is not match"
+	}
+	if len(url) == 0 {
+		return -1, 0, "http url is empty"
 	}
 	payload := strings.NewReader(body)
 	req, err := http.NewRequest(method, url, payload)
 	if err != nil {
-		return nil, 0, err
+		return -1, 0, fmt.Sprintf("http build request error: %s", err.Error())
 	}
 	if method == Post {
 		req.Header.Add("Content-Type", "application/json")
@@ -74,7 +75,7 @@ func request(method, url, body, header string) ([]byte, int, error) {
 		var headerMap map[string]string
 		err = json.Unmarshal([]byte(header), &headerMap)
 		if err != nil {
-			return nil, 0, err
+			return -1, 0, fmt.Sprintf("http header error: %s", err.Error())
 		}
 		if len(headerMap) > 0 {
 			for k, v := range headerMap {
@@ -82,9 +83,12 @@ func request(method, url, body, header string) ([]byte, int, error) {
 			}
 		}
 	}
+	startTime := time.Now().UnixMilli()
 	response, err := http.DefaultClient.Do(req)
+	endTime := time.Now().UnixMilli()
+	timeCost := endTime - startTime
 	if err != nil {
-		return nil, 0, err
+		return -1, timeCost, fmt.Sprintf("http send error: %s", err.Error())
 	}
 	defer func(body io.ReadCloser) {
 		err = body.Close()
@@ -94,7 +98,7 @@ func request(method, url, body, header string) ([]byte, int, error) {
 	}(response.Body)
 	resultBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, 0, err
+		return -1, timeCost, fmt.Sprintf("http build response error: %s", err.Error())
 	}
-	return resultBytes, response.StatusCode, nil
+	return response.StatusCode, timeCost, string(resultBytes)
 }
