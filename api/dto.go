@@ -48,6 +48,7 @@ type RecordDTO struct {
 	TaskId     int64  `json:"taskId"`
 	ExecutedAt int64  `json:"executedAt"`
 	Result     string `json:"result"`
+	TimeCost   int32  `json:"timeCost"`
 	Code       int32  `json:"code"`
 }
 
@@ -142,6 +143,7 @@ func (c *Controller) buildRecordPageDTO(list []storage.Record, total int64) Page
 				TaskId:     v.TaskId,
 				Result:     v.Result,
 				Code:       v.Code,
+				TimeCost:   v.TimeCost,
 				ExecutedAt: v.ExecutedAt.UnixMilli(),
 			})
 		}
