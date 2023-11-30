@@ -9,12 +9,6 @@ import (
 	"strconv"
 )
 
-const (
-	SuccessCode        = 200
-	ServiceErrorCode   = 400
-	ParameterErrorCode = 401
-)
-
 func NewController() (*Controller, error) {
 	service, err := storage.NewService()
 	return &Controller{
@@ -36,7 +30,7 @@ func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 
 	list, total, err := c.service.ListTask(name, status, pageIndex, pageSize)
 	if err != nil {
-		c.fail(w, ServiceErrorCode, err.Error())
+		c.fail(w, err.Error())
 		return
 	}
 	c.success(w, c.buildTaskPageDTO(list, total))
@@ -46,7 +40,7 @@ func (c *Controller) GetTask(w http.ResponseWriter, r *http.Request, p httproute
 	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
 	task, err := c.service.GetTask(id)
 	if err != nil {
-		c.fail(w, ServiceErrorCode, err.Error())
+		c.fail(w, err.Error())
 		return
 	}
 	c.success(w, c.buildTaskDTO(task))
@@ -56,17 +50,17 @@ func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httproute
 	cmd := TaskCommand{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.fail(w, ParameterErrorCode, err.Error())
+		c.fail(w, err.Error())
 		return
 	}
 	err = json.Unmarshal(body, &cmd)
 	if err != nil {
-		c.fail(w, ParameterErrorCode, err.Error())
+		c.fail(w, err.Error())
 		return
 	}
 	err = c.service.SaveTask(c.buildTask(0, cmd))
 	if err != nil {
-		c.fail(w, ServiceErrorCode, err.Error())
+		c.fail(w, err.Error())
 		return
 	}
 	c.success(w, nil)
@@ -77,17 +71,17 @@ func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprout
 	cmd := TaskCommand{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.fail(w, ParameterErrorCode, err.Error())
+		c.fail(w, err.Error())
 		return
 	}
 	err = json.Unmarshal(body, &cmd)
 	if err != nil {
-		c.fail(w, ParameterErrorCode, err.Error())
+		c.fail(w, err.Error())
 		return
 	}
 	err = c.service.SaveTask(c.buildTask(id, cmd))
 	if err != nil {
-		c.fail(w, ServiceErrorCode, err.Error())
+		c.fail(w, err.Error())
 		return
 	}
 	c.success(w, nil)
@@ -97,7 +91,7 @@ func (c *Controller) DeleteTask(w http.ResponseWriter, r *http.Request, p httpro
 	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
 	err := c.service.DeleteTask(id)
 	if err != nil {
-		c.fail(w, ServiceErrorCode, err.Error())
+		c.fail(w, err.Error())
 		return
 	}
 	c.success(w, nil)
@@ -114,7 +108,7 @@ func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httpro
 
 	list, total, err := c.service.ListRecord(taskId, startTime, endTime, pageIndex, pageSize)
 	if err != nil {
-		c.fail(w, ServiceErrorCode, err.Error())
+		c.fail(w, err.Error())
 		return
 	}
 	c.success(w, c.buildRecordPageDTO(list, total))
