@@ -8,6 +8,13 @@ import (
 	"smallscheduler/storage"
 )
 
+const (
+	OK        = 200
+	Created   = 201
+	NoContent = 204
+	Error     = 400
+)
+
 type PageDTO struct {
 	Total int64 `json:"total"`
 	List  any   `json:"list"`
@@ -46,22 +53,21 @@ type RecordDTO struct {
 	Code       int32  `json:"code"`
 }
 
-func (c *Controller) success(w http.ResponseWriter, obj any) {
+func (c *Controller) success(w http.ResponseWriter, code int, obj any) {
 	resultBytes := []byte("")
 	if obj != nil {
 		resultBytes, _ = json.Marshal(obj)
 	}
-	w.WriteHeader(200)
-	_, err := w.Write(resultBytes)
-	if err != nil {
-		log.Println(base.LogErrorTag, err)
-		return
-	}
+	c.write(w, code, resultBytes)
 }
 
-func (c *Controller) fail(w http.ResponseWriter, msg string) {
-	w.WriteHeader(400)
-	_, err := w.Write([]byte(msg))
+func (c *Controller) error(w http.ResponseWriter, msg string) {
+	c.write(w, Error, []byte(msg))
+}
+
+func (c *Controller) write(w http.ResponseWriter, code int, body []byte) {
+	w.WriteHeader(code)
+	_, err := w.Write(body)
 	if err != nil {
 		log.Println(base.LogErrorTag, err)
 		return
