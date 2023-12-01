@@ -25,8 +25,16 @@ func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 
 	name := values.Get("name")
 	status, _ := strconv.Atoi(values.Get("status"))
-	pageIndex, _ := strconv.Atoi(values.Get("pageIndex"))
-	pageSize, _ := strconv.Atoi(values.Get("pageSize"))
+	pageIndex, err := strconv.Atoi(values.Get("pageIndex"))
+	if err != nil {
+		c.error(w, QueryParamErrorType, err.Error())
+		return
+	}
+	pageSize, err := strconv.Atoi(values.Get("pageSize"))
+	if err != nil {
+		c.error(w, QueryParamErrorType, err.Error())
+		return
+	}
 
 	list, total, err := c.service.ListTask(name, status, pageIndex, pageSize)
 	if err != nil {
@@ -37,7 +45,11 @@ func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 }
 
 func (c *Controller) GetTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
+	id, err := strconv.ParseInt(p.ByName("id"), 10, 64)
+	if err != nil {
+		c.error(w, PathParamErrorType, err.Error())
+		return
+	}
 	task, err := c.service.GetTask(id)
 	if err != nil {
 		c.error(w, ServiceErrorType, err.Error())
@@ -58,6 +70,11 @@ func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httproute
 		c.error(w, UnmarshalErrorType, err.Error())
 		return
 	}
+	tip := c.checkAddTaskCommand(cmd)
+	if len(tip) > 0 {
+		c.error(w, CommandParamErrorType, tip)
+		return
+	}
 	id, err := c.service.SaveTask(c.buildTask(0, cmd))
 	if err != nil {
 		c.error(w, ServiceErrorType, err.Error())
@@ -69,7 +86,11 @@ func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httproute
 }
 
 func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
+	id, err := strconv.ParseInt(p.ByName("id"), 10, 64)
+	if err != nil {
+		c.error(w, PathParamErrorType, err.Error())
+		return
+	}
 	cmd := TaskCommand{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -90,8 +111,12 @@ func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprout
 }
 
 func (c *Controller) DeleteTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
-	err := c.service.DeleteTask(id)
+	id, err := strconv.ParseInt(p.ByName("id"), 10, 64)
+	if err != nil {
+		c.error(w, PathParamErrorType, err.Error())
+		return
+	}
+	err = c.service.DeleteTask(id)
 	if err != nil {
 		c.error(w, ServiceErrorType, err.Error())
 		return
@@ -102,11 +127,23 @@ func (c *Controller) DeleteTask(w http.ResponseWriter, r *http.Request, p httpro
 func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	values := r.URL.Query()
 
-	taskId, _ := strconv.ParseInt(values.Get("taskId"), 10, 64)
+	taskId, err := strconv.ParseInt(values.Get("taskId"), 10, 64)
+	if err != nil {
+		c.error(w, QueryParamErrorType, err.Error())
+		return
+	}
 	startTime := values.Get("startTime")
 	endTime := values.Get("endTime")
-	pageIndex, _ := strconv.Atoi(values.Get("pageIndex"))
-	pageSize, _ := strconv.Atoi(values.Get("pageSize"))
+	pageIndex, err := strconv.Atoi(values.Get("pageIndex"))
+	if err != nil {
+		c.error(w, QueryParamErrorType, err.Error())
+		return
+	}
+	pageSize, err := strconv.Atoi(values.Get("pageSize"))
+	if err != nil {
+		c.error(w, QueryParamErrorType, err.Error())
+		return
+	}
 
 	list, total, err := c.service.ListRecord(taskId, startTime, endTime, pageIndex, pageSize)
 	if err != nil {

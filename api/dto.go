@@ -5,17 +5,21 @@ import (
 	"log"
 	"net/http"
 	"smallscheduler/base"
+	"smallscheduler/core"
 	"smallscheduler/storage"
 )
 
 const (
-	OkCode             = 200
-	CreatedCode        = 201
-	NoContentCode      = 204
-	ErrorCode          = 400
-	IOErrorType        = 1
-	UnmarshalErrorType = 2
-	ServiceErrorType   = 3
+	OkCode                = 200
+	CreatedCode           = 201
+	NoContentCode         = 204
+	ErrorCode             = 400
+	IOErrorType           = 10
+	UnmarshalErrorType    = 11
+	PathParamErrorType    = 20
+	QueryParamErrorType   = 21
+	CommandParamErrorType = 22
+	ServiceErrorType      = 30
 )
 
 type PageDTO struct {
@@ -163,6 +167,22 @@ func (c *Controller) buildRecordPageDTO(list []storage.Record, total int64) Page
 		Total: total,
 		List:  dtoList,
 	}
+}
+
+func (c *Controller) checkAddTaskCommand(command TaskCommand) string {
+	if len(command.Name) == 0 {
+		return "name is empty"
+	}
+	if len(command.Url) == 0 {
+		return "url is empty"
+	}
+	if len(command.Cron) == 0 {
+		return "cron is empty"
+	}
+	if command.Method != core.Get && command.Method != core.Post {
+		return "method is not match"
+	}
+	return ""
 }
 
 func (c *Controller) buildTask(id int64, command TaskCommand) storage.Task {
