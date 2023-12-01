@@ -30,40 +30,40 @@ func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 
 	list, total, err := c.service.ListTask(name, status, pageIndex, pageSize)
 	if err != nil {
-		c.error(w, err.Error())
+		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, OK, c.buildTaskPageDTO(list, total))
+	c.success(w, OkCode, c.buildTaskPageDTO(list, total))
 }
 
 func (c *Controller) GetTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
 	task, err := c.service.GetTask(id)
 	if err != nil {
-		c.error(w, err.Error())
+		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, OK, c.buildTaskDTO(task))
+	c.success(w, OkCode, c.buildTaskDTO(task))
 }
 
 func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	cmd := TaskCommand{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.error(w, err.Error())
+		c.error(w, IOErrorType, err.Error())
 		return
 	}
 	err = json.Unmarshal(body, &cmd)
 	if err != nil {
-		c.error(w, err.Error())
+		c.error(w, UnmarshalErrorType, err.Error())
 		return
 	}
 	id, err := c.service.SaveTask(c.buildTask(0, cmd))
 	if err != nil {
-		c.error(w, err.Error())
+		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, Created, CreatedDTO{
+	c.success(w, CreatedCode, CreatedDTO{
 		Id: id,
 	})
 }
@@ -73,30 +73,30 @@ func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprout
 	cmd := TaskCommand{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.error(w, err.Error())
+		c.error(w, IOErrorType, err.Error())
 		return
 	}
 	err = json.Unmarshal(body, &cmd)
 	if err != nil {
-		c.error(w, err.Error())
+		c.error(w, UnmarshalErrorType, err.Error())
 		return
 	}
 	_, err = c.service.SaveTask(c.buildTask(id, cmd))
 	if err != nil {
-		c.error(w, err.Error())
+		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, NoContent, nil)
+	c.success(w, NoContentCode, nil)
 }
 
 func (c *Controller) DeleteTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id, _ := strconv.ParseInt(p.ByName("id"), 10, 64)
 	err := c.service.DeleteTask(id)
 	if err != nil {
-		c.error(w, err.Error())
+		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, NoContent, nil)
+	c.success(w, NoContentCode, nil)
 }
 
 func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -110,8 +110,8 @@ func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httpro
 
 	list, total, err := c.service.ListRecord(taskId, startTime, endTime, pageIndex, pageSize)
 	if err != nil {
-		c.error(w, err.Error())
+		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, OK, c.buildRecordPageDTO(list, total))
+	c.success(w, OkCode, c.buildRecordPageDTO(list, total))
 }

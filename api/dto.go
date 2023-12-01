@@ -9,10 +9,13 @@ import (
 )
 
 const (
-	OK        = 200
-	Created   = 201
-	NoContent = 204
-	Error     = 400
+	OkCode             = 200
+	CreatedCode        = 201
+	NoContentCode      = 204
+	ErrorCode          = 400
+	IOErrorType        = 1
+	UnmarshalErrorType = 2
+	ServiceErrorType   = 3
 )
 
 type PageDTO struct {
@@ -58,7 +61,8 @@ type CreatedDTO struct {
 }
 
 type ErrorDTO struct {
-	Msg string `json:"msg"`
+	Type int    `json:"type"`
+	Msg  string `json:"msg"`
 }
 
 func (c *Controller) success(w http.ResponseWriter, code int, obj any) {
@@ -69,11 +73,12 @@ func (c *Controller) success(w http.ResponseWriter, code int, obj any) {
 	c.write(w, code, resultBytes)
 }
 
-func (c *Controller) error(w http.ResponseWriter, msg string) {
+func (c *Controller) error(w http.ResponseWriter, eType int, msg string) {
 	resultBytes, _ := json.Marshal(ErrorDTO{
-		Msg: msg,
+		Type: eType,
+		Msg:  msg,
 	})
-	c.write(w, Error, resultBytes)
+	c.write(w, ErrorCode, resultBytes)
 }
 
 func (c *Controller) write(w http.ResponseWriter, code int, body []byte) {
