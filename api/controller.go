@@ -58,12 +58,14 @@ func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httproute
 		c.error(w, err.Error())
 		return
 	}
-	err = c.service.SaveTask(c.buildTask(0, cmd))
+	id, err := c.service.SaveTask(c.buildTask(0, cmd))
 	if err != nil {
 		c.error(w, err.Error())
 		return
 	}
-	c.success(w, Created, nil)
+	c.success(w, Created, CreatedDTO{
+		Id: id,
+	})
 }
 
 func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -79,7 +81,7 @@ func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprout
 		c.error(w, err.Error())
 		return
 	}
-	err = c.service.SaveTask(c.buildTask(id, cmd))
+	_, err = c.service.SaveTask(c.buildTask(id, cmd))
 	if err != nil {
 		c.error(w, err.Error())
 		return

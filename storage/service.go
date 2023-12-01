@@ -31,10 +31,10 @@ func (s *Service) ExecuteTask(id int64) (int64, error) {
 	return s.repository.ExecuteTask(id)
 }
 
-func (s *Service) SaveTask(task Task) error {
+func (s *Service) SaveTask(task Task) (int64, error) {
 	err := s.repository.AddTaskEditVersion()
 	if err != nil {
-		return err
+		return 0, err
 	}
 	return s.repository.SaveTask(task)
 }

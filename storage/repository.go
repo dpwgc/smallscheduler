@@ -79,14 +79,14 @@ func (r *Repository) ExecuteTask(id int64) (int64, error) {
 	return sql.RowsAffected, nil
 }
 
-func (r *Repository) SaveTask(task Task) error {
+func (r *Repository) SaveTask(task Task) (int64, error) {
 	task.UpdatedAt = time.Now()
 	if task.Id > 0 {
-		return r.DB.Table("task").Where("id = ?", task.Id).Updates(&task).Error
+		return task.Id, r.DB.Table("task").Where("id = ?", task.Id).Updates(&task).Error
 	} else {
 		task.CreatedAt = task.UpdatedAt
 		task.Status = 1
-		return r.DB.Table("task").Create(&task).Error
+		return task.Id, r.DB.Table("task").Create(&task).Error
 	}
 }
 

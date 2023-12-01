@@ -53,6 +53,14 @@ type RecordDTO struct {
 	Code       int32  `json:"code"`
 }
 
+type CreatedDTO struct {
+	Id int64 `json:"id"`
+}
+
+type ErrorDTO struct {
+	Msg string `json:"msg"`
+}
+
 func (c *Controller) success(w http.ResponseWriter, code int, obj any) {
 	resultBytes := []byte("")
 	if obj != nil {
@@ -62,7 +70,10 @@ func (c *Controller) success(w http.ResponseWriter, code int, obj any) {
 }
 
 func (c *Controller) error(w http.ResponseWriter, msg string) {
-	c.write(w, Error, []byte(msg))
+	resultBytes, _ := json.Marshal(ErrorDTO{
+		Msg: msg,
+	})
+	c.write(w, Error, resultBytes)
 }
 
 func (c *Controller) write(w http.ResponseWriter, code int, body []byte) {
