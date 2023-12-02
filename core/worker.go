@@ -15,7 +15,6 @@ const (
 )
 
 var workerFactory sync.Map
-var taskCachePool sync.Map
 var service *storage.Service
 var taskEditVersion atomic.Value
 
@@ -31,7 +30,19 @@ func InitWorkers() {
 	taskEditVersion.Store(version)
 	go func() {
 		for {
+			latestVersion, err := service.GetTaskEditVersion()
+			if err != nil {
+				log.Println(base.LogErrorTag, err)
+				continue
+			}
+			if latestVersion == taskEditVersion.Load().(int64) {
+				continue
+			}
+			// 加载两次，避免被覆盖
 			loadWorkers()
+			time.Sleep(TaskListRefreshCycle)
+			loadWorkers()
+			taskEditVersion.Store(latestVersion)
 			time.Sleep(TaskListRefreshCycle)
 		}
 	}()
@@ -39,20 +50,10 @@ func InitWorkers() {
 
 // 加载工作者列表
 func loadWorkers() {
-	latestVersion, err := service.GetTaskEditVersion()
-	if err != nil {
-		log.Println(base.LogErrorTag, err)
-		return
-	}
-	if latestVersion == taskEditVersion.Load().(int64) {
-		return
-	}
-	taskEditVersion.Store(latestVersion)
 	// 获取当前系统中的所有任务的cron表达式
 	cronList, err := service.ListStartedCron()
 	if err != nil {
 		log.Println(base.LogErrorTag, err)
-		return
 	}
 	//为每个cron表达式生成一个工作者
 	for _, cronStr := range cronList {
@@ -62,8 +63,8 @@ func loadWorkers() {
 
 func loadWorker(cronStr string) {
 	//判断是否已经存在工作者
-	check, _ := workerFactory.Load(cronStr)
-	if check != nil {
+	oldWorker, _ := workerFactory.Load(cronStr)
+	if oldWorker != nil {
 		return
 	}
 	//创建工作者（协程定时任务）
@@ -76,17 +77,6 @@ func loadWorker(cronStr string) {
 		log.Println(base.LogErrorTag, err)
 		return
 	}
-	//获取该cron下的所有任务
-	taskList, err := service.ListStartedTaskByCron(cronStr)
-	if err != nil {
-		log.Println(base.LogErrorTag, err)
-		return
-	}
-	if len(taskList) == 0 {
-		return
-	}
-	//任务信息缓存
-	taskCachePool.Store(cronStr, taskList)
 	//启动工作者
 	worker.Start()
 	//将该工作者装入工作者列表

@@ -27,8 +27,8 @@ func (s *Service) ListStartedCron() ([]string, error) {
 	return s.repository.ListStartedCron()
 }
 
-func (s *Service) TryExecuteTask(id int64) (int64, error) {
-	return s.repository.TryExecuteTask(id)
+func (s *Service) TryExecuteTask(task Task) (int64, error) {
+	return s.repository.TryExecuteTask(task)
 }
 
 func (s *Service) AddTask(task Task) (int64, error) {

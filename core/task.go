@@ -23,9 +23,11 @@ const (
 
 // 批量执行任务
 func execute(cronStr string) {
-	//获取该cron的所有任务
-	taskCache, _ := taskCachePool.Load(cronStr)
-	taskList := taskCache.([]storage.Task)
+	//获取该cron下的所有任务
+	taskList, err := service.ListStartedTaskByCron(cronStr)
+	if err != nil {
+		log.Println(base.LogErrorTag, err)
+	}
 	//如果任务列表长度为0，则删除该工作者
 	if len(taskList) == 0 {
 		worker, _ := workerFactory.Load(cronStr)
@@ -36,7 +38,7 @@ func execute(cronStr string) {
 	//循环请求
 	for _, task := range taskList {
 		go func(task storage.Task) {
-			yes, err := service.TryExecuteTask(task.Id)
+			yes, err := service.TryExecuteTask(task)
 			if err != nil {
 				log.Println(base.LogErrorTag, err)
 				return
