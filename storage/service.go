@@ -11,8 +11,8 @@ type Service struct {
 	repository *Repository
 }
 
-func (s *Service) ListTask(name string, status int, pageIndex int, pageSize int) ([]Task, int64, error) {
-	return s.repository.ListTask(name, status, pageIndex, pageSize)
+func (s *Service) ListTask(name string, cron string, status int, pageIndex int, pageSize int) ([]Task, int64, error) {
+	return s.repository.ListTask(name, cron, status, pageIndex, pageSize)
 }
 
 func (s *Service) GetTask(id int64) (Task, error) {
@@ -27,8 +27,8 @@ func (s *Service) ListStartedCron() ([]string, error) {
 	return s.repository.ListStartedCron()
 }
 
-func (s *Service) ExecuteTask(id int64) (int64, error) {
-	return s.repository.ExecuteTask(id)
+func (s *Service) TryExecuteTask(id int64) (int64, error) {
+	return s.repository.TryExecuteTask(id)
 }
 
 func (s *Service) AddTask(task Task) (int64, error) {

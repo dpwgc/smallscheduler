@@ -67,7 +67,7 @@ func loadWorker(cronStr string) {
 		return
 	}
 	//创建工作者（协程定时任务）
-	worker := newWithSeconds()
+	worker := NewCronWorker()
 	//装配函数
 	_, err := worker.AddFunc(cronStr, func() {
 		execute(cronStr)
@@ -85,7 +85,7 @@ func loadWorker(cronStr string) {
 	if len(taskList) == 0 {
 		return
 	}
-	//将该工作者装入工作者列表
+	//任务信息缓存
 	taskCachePool.Store(cronStr, taskList)
 	//启动工作者
 	worker.Start()
@@ -93,9 +93,7 @@ func loadWorker(cronStr string) {
 	workerFactory.Store(cronStr, worker)
 }
 
-// 返回一个支持至 秒 级别的 cron
-func newWithSeconds() *cron.Cron {
-	secondParser := cron.NewParser(cron.Second | cron.Minute |
-		cron.Hour | cron.Dom | cron.Month | cron.DowOptional | cron.Descriptor)
-	return cron.New(cron.WithParser(secondParser), cron.WithChain())
+// NewCronWorker 返回一个支持至 秒 级别的 cron
+func NewCronWorker() *cron.Cron {
+	return cron.New(cron.WithSeconds(), cron.WithChain())
 }

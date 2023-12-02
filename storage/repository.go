@@ -21,7 +21,7 @@ type Repository struct {
 	DB *gorm.DB
 }
 
-func (r *Repository) ListTask(name string, status int, pageIndex int, pageSize int) ([]Task, int64, error) {
+func (r *Repository) ListTask(name string, cron string, status int, pageIndex int, pageSize int) ([]Task, int64, error) {
 	var taskList []Task
 	var total int64
 	sql := r.DB.Model(&Task{})
@@ -30,6 +30,9 @@ func (r *Repository) ListTask(name string, status int, pageIndex int, pageSize i
 	}
 	if len(name) > 0 {
 		sql = sql.Where(fmt.Sprintf("name like %q", "%"+name+"%"))
+	}
+	if len(cron) > 0 {
+		sql = sql.Where(fmt.Sprintf("cron like %q", "%"+cron+"%"))
 	}
 	sql.Count(&total)
 	sql = sql.Order("id desc").Limit(pageSize).Offset((pageIndex - 1) * pageSize)
@@ -65,11 +68,14 @@ func (r *Repository) ListStartedCron() ([]string, error) {
 	return cronList, err
 }
 
-func (r *Repository) ExecuteTask(id int64) (int64, error) {
+func (r *Repository) TryExecuteTask(id int64) (int64, error) {
 	task := Task{}
-	err := r.DB.Model(&Task{}).Select("id", "total").Where("id = ?", id).First(&task).Error
+	err := r.DB.Model(&Task{}).Select("id", "total").Where("id = ? and status = ?", id, 1).First(&task).Error
 	if err != nil {
 		return 0, err
+	}
+	if task.Id <= 0 {
+		return 0, errors.New("run task is empty")
 	}
 	task.UpdatedAt = time.Now()
 	sql := r.DB.Table("task").Where("id = ? and total = ?", task.Id, task.Total).UpdateColumn("total", gorm.Expr("total + ?", 1))

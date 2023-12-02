@@ -28,27 +28,33 @@ type PageDTO struct {
 }
 
 type TaskCommand struct {
-	Status int32             `json:"status"`
-	Name   string            `json:"name"`
-	Cron   string            `json:"cron"`
-	Url    string            `json:"url"`
-	Method string            `json:"method"`
-	Body   string            `json:"body"`
-	Header map[string]string `json:"header"`
+	Status        int32             `json:"status"`
+	Name          string            `json:"name"`
+	Cron          string            `json:"cron"`
+	Delay         int32             `json:"delay"`
+	RetryNumber   int32             `json:"retryNumber"`
+	RetryInterval int32             `json:"retryInterval"`
+	Url           string            `json:"url"`
+	Method        string            `json:"method"`
+	Body          string            `json:"body"`
+	Header        map[string]string `json:"header"`
 }
 
 type TaskDTO struct {
-	Id        int64             `json:"id"`
-	Status    int32             `json:"status"`
-	Name      string            `json:"name"`
-	Cron      string            `json:"cron"`
-	Url       string            `json:"url"`
-	Method    string            `json:"method"`
-	Body      string            `json:"body"`
-	Header    map[string]string `json:"header"`
-	Total     int64             `json:"total"`
-	CreatedAt int64             `json:"createdAt"`
-	UpdatedAt int64             `json:"updatedAt"`
+	Id            int64             `json:"id"`
+	Status        int32             `json:"status"`
+	Name          string            `json:"name"`
+	Cron          string            `json:"cron"`
+	Delay         int32             `json:"delay"`
+	RetryNumber   int32             `json:"retryNumber"`
+	RetryInterval int32             `json:"retryInterval"`
+	Url           string            `json:"url"`
+	Method        string            `json:"method"`
+	Body          string            `json:"body"`
+	Header        map[string]string `json:"header"`
+	Total         int64             `json:"total"`
+	CreatedAt     int64             `json:"createdAt"`
+	UpdatedAt     int64             `json:"updatedAt"`
 }
 
 type RecordDTO struct {
@@ -97,23 +103,23 @@ func (c *Controller) write(w http.ResponseWriter, code int, body []byte) {
 func (c *Controller) buildTaskDTO(task storage.Task) TaskDTO {
 	headerObj := map[string]string{}
 	if len(task.Header) > 0 {
-		err := json.Unmarshal([]byte(task.Header), &headerObj)
-		if err != nil {
-			headerObj = nil
-		}
+		_ = json.Unmarshal([]byte(task.Header), &headerObj)
 	}
 	return TaskDTO{
-		Id:        task.Id,
-		Status:    task.Status,
-		Name:      task.Name,
-		Cron:      task.Cron,
-		Url:       task.Url,
-		Method:    task.Method,
-		Body:      task.Body,
-		Header:    headerObj,
-		Total:     task.Total,
-		CreatedAt: task.CreatedAt.UnixMilli(),
-		UpdatedAt: task.UpdatedAt.UnixMilli(),
+		Id:            task.Id,
+		Status:        task.Status,
+		Name:          task.Name,
+		Cron:          task.Cron,
+		Delay:         task.Delay,
+		RetryNumber:   task.RetryNumber,
+		RetryInterval: task.RetryInterval,
+		Url:           task.Url,
+		Method:        task.Method,
+		Body:          task.Body,
+		Header:        headerObj,
+		Total:         task.Total,
+		CreatedAt:     task.CreatedAt.UnixMilli(),
+		UpdatedAt:     task.UpdatedAt.UnixMilli(),
 	}
 }
 
@@ -121,26 +127,7 @@ func (c *Controller) buildTaskPageDTO(list []storage.Task, total int64) PageDTO 
 	var dtoList []TaskDTO
 	if len(list) > 0 {
 		for _, v := range list {
-			headerObj := map[string]string{}
-			if len(v.Header) > 0 {
-				err := json.Unmarshal([]byte(v.Header), &headerObj)
-				if err != nil {
-					headerObj = nil
-				}
-			}
-			dtoList = append(dtoList, TaskDTO{
-				Id:        v.Id,
-				Status:    v.Status,
-				Name:      v.Name,
-				Cron:      v.Cron,
-				Url:       v.Url,
-				Method:    v.Method,
-				Body:      v.Body,
-				Header:    headerObj,
-				Total:     v.Total,
-				CreatedAt: v.CreatedAt.UnixMilli(),
-				UpdatedAt: v.UpdatedAt.UnixMilli(),
-			})
+			dtoList = append(dtoList, c.buildTaskDTO(v))
 		}
 	}
 	return PageDTO{
@@ -179,7 +166,32 @@ func (c *Controller) checkAddTaskCommand(command TaskCommand) string {
 	if len(command.Cron) == 0 {
 		return "cron is empty"
 	}
-	if command.Method != core.Get && command.Method != core.Post {
+	checkWorker := core.NewCronWorker()
+	defer func() {
+		checkWorker = nil
+	}()
+	_, err := checkWorker.AddFunc(command.Cron, func() {})
+	if err != nil {
+		return err.Error()
+	}
+	if command.Method != core.Get && command.Method != core.Post && command.Method != core.Put && command.Method != core.Patch && command.Method != core.Delete {
+		return "method is not match"
+	}
+	return ""
+}
+
+func (c *Controller) checkEditTaskCommand(command TaskCommand) string {
+	if len(command.Cron) > 0 {
+		checkWorker := core.NewCronWorker()
+		defer func() {
+			checkWorker = nil
+		}()
+		_, err := checkWorker.AddFunc(command.Cron, func() {})
+		if err != nil {
+			return err.Error()
+		}
+	}
+	if len(command.Method) > 0 && command.Method != core.Get && command.Method != core.Post && command.Method != core.Put && command.Method != core.Patch && command.Method != core.Delete {
 		return "method is not match"
 	}
 	return ""
@@ -194,13 +206,16 @@ func (c *Controller) buildTask(id int64, command TaskCommand) storage.Task {
 		}
 	}
 	return storage.Task{
-		Id:     id,
-		Status: command.Status,
-		Name:   command.Name,
-		Cron:   command.Cron,
-		Url:    command.Url,
-		Method: command.Method,
-		Body:   command.Body,
-		Header: headerJson,
+		Id:            id,
+		Status:        command.Status,
+		Name:          command.Name,
+		Cron:          command.Cron,
+		Delay:         command.Delay,
+		RetryNumber:   command.RetryNumber,
+		RetryInterval: command.RetryInterval,
+		Url:           command.Url,
+		Method:        command.Method,
+		Body:          command.Body,
+		Header:        headerJson,
 	}
 }

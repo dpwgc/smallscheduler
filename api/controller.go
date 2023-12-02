@@ -24,6 +24,7 @@ func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 	values := r.URL.Query()
 
 	name := values.Get("name")
+	cron := values.Get("cron")
 	status, _ := strconv.Atoi(values.Get("status"))
 	pageIndex, err := strconv.Atoi(values.Get("pageIndex"))
 	if err != nil {
@@ -36,7 +37,7 @@ func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 		return
 	}
 
-	list, total, err := c.service.ListTask(name, status, pageIndex, pageSize)
+	list, total, err := c.service.ListTask(name, cron, status, pageIndex, pageSize)
 	if err != nil {
 		c.error(w, ServiceErrorType, err.Error())
 		return
@@ -100,6 +101,11 @@ func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprout
 	err = json.Unmarshal(body, &cmd)
 	if err != nil {
 		c.error(w, UnmarshalErrorType, err.Error())
+		return
+	}
+	tip := c.checkEditTaskCommand(cmd)
+	if len(tip) > 0 {
+		c.error(w, CommandParamErrorType, tip)
 		return
 	}
 	err = c.service.EditTask(c.buildTask(id, cmd))

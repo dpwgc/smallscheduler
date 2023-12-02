@@ -14,8 +14,11 @@ import (
 )
 
 const (
-	Post = "POST"
-	Get  = "GET"
+	Post   = "POST"
+	Get    = "GET"
+	Put    = "PUT"
+	Patch  = "PATCH"
+	Delete = "DELETE"
 )
 
 // 批量执行任务
@@ -28,36 +31,47 @@ func execute(cronStr string) {
 		worker, _ := workerFactory.Load(cronStr)
 		worker.(*cron.Cron).Stop()
 		workerFactory.Delete(cronStr)
+		worker = nil
 	}
 	//循环请求
 	for _, task := range taskList {
 		go func(task storage.Task) {
-			i, err := service.ExecuteTask(task.Id)
+			if task.Delay > 0 {
+				time.Sleep(time.Duration(task.Delay) * time.Millisecond)
+			}
+			yes, err := service.TryExecuteTask(task.Id)
 			if err != nil {
 				log.Println(base.LogErrorTag, err)
 				return
 			}
-			if i == 0 {
+			if yes == 0 {
 				return
 			}
-			record := storage.Record{
-				TaskId:     task.Id,
-				ExecutedAt: time.Now(),
-			}
-			code, timeCost, result := request(task.Method, task.Url, task.Body, task.Header)
-			record.Result = result
-			record.Code = int32(code)
-			record.TimeCost = int32(timeCost)
-			err = service.AddRecord(record)
-			if err != nil {
-				log.Println(base.LogErrorTag, err)
+			for i := 0; i <= int(task.RetryNumber); i++ {
+				record := storage.Record{
+					TaskId:      task.Id,
+					RetryNumber: int32(i),
+					ExecutedAt:  time.Now(),
+				}
+				code, timeCost, result := request(task.Method, task.Url, task.Body, task.Header)
+				record.Result = result
+				record.Code = int32(code)
+				record.TimeCost = int32(timeCost)
+				err = service.AddRecord(record)
+				if err != nil {
+					log.Println(base.LogErrorTag, err)
+				}
+				if record.Code >= 200 && record.Code < 300 {
+					break
+				}
+				time.Sleep(time.Duration(task.RetryInterval) * time.Millisecond)
 			}
 		}(task)
 	}
 }
 
 func request(method, url, body, header string) (int, int64, string) {
-	if method != Post && method != Get {
+	if method != Post && method != Get && method != Put && method != Patch && method != Delete {
 		return -1, 0, "http method is not match"
 	}
 	if len(url) == 0 {
@@ -67,9 +81,6 @@ func request(method, url, body, header string) (int, int64, string) {
 	req, err := http.NewRequest(method, url, payload)
 	if err != nil {
 		return -1, 0, fmt.Sprintf("http build request error: %s", err.Error())
-	}
-	if method == Post {
-		req.Header.Add("Content-Type", "application/json")
 	}
 	if len(header) > 2 {
 		var headerMap map[string]string
