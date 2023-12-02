@@ -80,7 +80,6 @@ func (r *Repository) TryExecuteTask(task Task) (int64, error) {
 func (r *Repository) AddTask(task Task) (int64, error) {
 	task.UpdatedAt = time.Now()
 	task.CreatedAt = task.UpdatedAt
-	task.Status = 1
 	return task.Id, r.DB.Table("task").Create(&task).Error
 }
 

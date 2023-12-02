@@ -11,7 +11,7 @@ type Metadata struct {
 
 type Task struct {
 	Id         int64     `gorm:"column:id;not null;type:bigint(20);autoIncrement;primaryKey;"`
-	Status     int32     `gorm:"column:status;not null;type:int(11);default:1;"`
+	Status     int32     `gorm:"column:status;not null;type:int(11);default:2;"`
 	CreatedAt  time.Time `gorm:"column:created_at;not null;type:datetime;default:CURRENT_TIMESTAMP;"`
 	UpdatedAt  time.Time `gorm:"column:updated_at;not null;type:datetime;default:CURRENT_TIMESTAMP;"`
 	Name       string    `gorm:"column:name;index:uni_name,unique;not null;type:varchar(100);default:'';"`
