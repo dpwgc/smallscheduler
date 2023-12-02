@@ -187,7 +187,7 @@ func (c *Controller) checkEditTaskCommand(command TaskCommand) string {
 		}()
 		_, err := checkWorker.AddFunc(command.Cron, func() {})
 		if err != nil {
-			return err.Error()
+			return "cron spec error: " + err.Error()
 		}
 	}
 	if len(command.Method) > 0 && command.Method != core.Get && command.Method != core.Post && command.Method != core.Put && command.Method != core.Patch && command.Method != core.Delete {
