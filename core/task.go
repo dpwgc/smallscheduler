@@ -61,7 +61,9 @@ func execute(cronStr string) {
 				if record.Code >= 200 && record.Code < 300 {
 					break
 				}
-				time.Sleep(time.Duration(task.RetryCycle) * time.Millisecond)
+				if task.RetryCycle > 0 {
+					time.Sleep(time.Duration(task.RetryCycle) * time.Millisecond)
+				}
 			}
 		}(task)
 	}
