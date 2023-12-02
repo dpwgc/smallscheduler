@@ -16,7 +16,6 @@ type Task struct {
 	UpdatedAt  time.Time `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP;"`
 	Name       string    `gorm:"column:name;index:uni_name,unique;not null;type:varchar(100);default:'';"`
 	Cron       string    `gorm:"column:cron;index:idx_cron;not null;type:varchar(40);default:'';"`
-	Delay      int32     `gorm:"column:delay;not null;default:0;"`
 	RetryMax   int32     `gorm:"column:retry_max;not null;default:0;"`
 	RetryCycle int32     `gorm:"column:retry_cycle;not null;default:0;"`
 	Url        string    `gorm:"column:url;not null;type:text;default:'';"`

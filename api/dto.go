@@ -31,7 +31,6 @@ type TaskCommand struct {
 	Status     int32             `json:"status"`
 	Name       string            `json:"name"`
 	Cron       string            `json:"cron"`
-	Delay      int32             `json:"delay"`
 	RetryMax   int32             `json:"retryMax"`
 	RetryCycle int32             `json:"retryCycle"`
 	Url        string            `json:"url"`
@@ -45,7 +44,6 @@ type TaskDTO struct {
 	Status     int32             `json:"status"`
 	Name       string            `json:"name"`
 	Cron       string            `json:"cron"`
-	Delay      int32             `json:"delay"`
 	RetryMax   int32             `json:"retryMax"`
 	RetryCycle int32             `json:"retryCycle"`
 	Url        string            `json:"url"`
@@ -111,7 +109,6 @@ func (c *Controller) buildTaskDTO(task storage.Task) TaskDTO {
 		Status:     task.Status,
 		Name:       task.Name,
 		Cron:       task.Cron,
-		Delay:      task.Delay,
 		RetryMax:   task.RetryMax,
 		RetryCycle: task.RetryCycle,
 		Url:        task.Url,
@@ -212,7 +209,6 @@ func (c *Controller) buildTask(id int64, command TaskCommand) storage.Task {
 		Status:     command.Status,
 		Name:       command.Name,
 		Cron:       command.Cron,
-		Delay:      command.Delay,
 		RetryMax:   command.RetryMax,
 		RetryCycle: command.RetryCycle,
 		Url:        command.Url,

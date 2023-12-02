@@ -36,9 +36,6 @@ func execute(cronStr string) {
 	//循环请求
 	for _, task := range taskList {
 		go func(task storage.Task) {
-			if task.Delay > 0 {
-				time.Sleep(time.Duration(task.Delay) * time.Millisecond)
-			}
 			yes, err := service.TryExecuteTask(task.Id)
 			if err != nil {
 				log.Println(base.LogErrorTag, err)
