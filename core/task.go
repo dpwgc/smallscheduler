@@ -47,11 +47,11 @@ func execute(cronStr string) {
 			if yes == 0 {
 				return
 			}
-			for i := 0; i <= int(task.RetryNumber); i++ {
+			for i := 0; i <= int(task.RetryMax); i++ {
 				record := storage.Record{
-					TaskId:      task.Id,
-					RetryNumber: int32(i),
-					ExecutedAt:  time.Now(),
+					TaskId:     task.Id,
+					RetryCount: int32(i),
+					ExecutedAt: time.Now(),
 				}
 				code, timeCost, result := request(task.Method, task.Url, task.Body, task.Header)
 				record.Result = result
@@ -64,7 +64,7 @@ func execute(cronStr string) {
 				if record.Code >= 200 && record.Code < 300 {
 					break
 				}
-				time.Sleep(time.Duration(task.RetryInterval) * time.Millisecond)
+				time.Sleep(time.Duration(task.RetryCycle) * time.Millisecond)
 			}
 		}(task)
 	}

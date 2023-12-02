@@ -28,33 +28,33 @@ type PageDTO struct {
 }
 
 type TaskCommand struct {
-	Status        int32             `json:"status"`
-	Name          string            `json:"name"`
-	Cron          string            `json:"cron"`
-	Delay         int32             `json:"delay"`
-	RetryNumber   int32             `json:"retryNumber"`
-	RetryInterval int32             `json:"retryInterval"`
-	Url           string            `json:"url"`
-	Method        string            `json:"method"`
-	Body          string            `json:"body"`
-	Header        map[string]string `json:"header"`
+	Status     int32             `json:"status"`
+	Name       string            `json:"name"`
+	Cron       string            `json:"cron"`
+	Delay      int32             `json:"delay"`
+	RetryMax   int32             `json:"retryMax"`
+	RetryCycle int32             `json:"retryCycle"`
+	Url        string            `json:"url"`
+	Method     string            `json:"method"`
+	Body       string            `json:"body"`
+	Header     map[string]string `json:"header"`
 }
 
 type TaskDTO struct {
-	Id            int64             `json:"id"`
-	Status        int32             `json:"status"`
-	Name          string            `json:"name"`
-	Cron          string            `json:"cron"`
-	Delay         int32             `json:"delay"`
-	RetryNumber   int32             `json:"retryNumber"`
-	RetryInterval int32             `json:"retryInterval"`
-	Url           string            `json:"url"`
-	Method        string            `json:"method"`
-	Body          string            `json:"body"`
-	Header        map[string]string `json:"header"`
-	Total         int64             `json:"total"`
-	CreatedAt     int64             `json:"createdAt"`
-	UpdatedAt     int64             `json:"updatedAt"`
+	Id         int64             `json:"id"`
+	Status     int32             `json:"status"`
+	Name       string            `json:"name"`
+	Cron       string            `json:"cron"`
+	Delay      int32             `json:"delay"`
+	RetryMax   int32             `json:"retryMax"`
+	RetryCycle int32             `json:"retryCycle"`
+	Url        string            `json:"url"`
+	Method     string            `json:"method"`
+	Body       string            `json:"body"`
+	Header     map[string]string `json:"header"`
+	Total      int64             `json:"total"`
+	CreatedAt  int64             `json:"createdAt"`
+	UpdatedAt  int64             `json:"updatedAt"`
 }
 
 type RecordDTO struct {
@@ -64,6 +64,7 @@ type RecordDTO struct {
 	Result     string `json:"result"`
 	TimeCost   int32  `json:"timeCost"`
 	Code       int32  `json:"code"`
+	RetryCount int32  `json:"retryCount"`
 }
 
 type CreatedDTO struct {
@@ -106,20 +107,20 @@ func (c *Controller) buildTaskDTO(task storage.Task) TaskDTO {
 		_ = json.Unmarshal([]byte(task.Header), &headerObj)
 	}
 	return TaskDTO{
-		Id:            task.Id,
-		Status:        task.Status,
-		Name:          task.Name,
-		Cron:          task.Cron,
-		Delay:         task.Delay,
-		RetryNumber:   task.RetryNumber,
-		RetryInterval: task.RetryInterval,
-		Url:           task.Url,
-		Method:        task.Method,
-		Body:          task.Body,
-		Header:        headerObj,
-		Total:         task.Total,
-		CreatedAt:     task.CreatedAt.UnixMilli(),
-		UpdatedAt:     task.UpdatedAt.UnixMilli(),
+		Id:         task.Id,
+		Status:     task.Status,
+		Name:       task.Name,
+		Cron:       task.Cron,
+		Delay:      task.Delay,
+		RetryMax:   task.RetryMax,
+		RetryCycle: task.RetryCycle,
+		Url:        task.Url,
+		Method:     task.Method,
+		Body:       task.Body,
+		Header:     headerObj,
+		Total:      task.Total,
+		CreatedAt:  task.CreatedAt.UnixMilli(),
+		UpdatedAt:  task.UpdatedAt.UnixMilli(),
 	}
 }
 
@@ -146,6 +147,7 @@ func (c *Controller) buildRecordPageDTO(list []storage.Record, total int64) Page
 				Result:     v.Result,
 				Code:       v.Code,
 				TimeCost:   v.TimeCost,
+				RetryCount: v.RetryCount,
 				ExecutedAt: v.ExecutedAt.UnixMilli(),
 			})
 		}
@@ -206,16 +208,16 @@ func (c *Controller) buildTask(id int64, command TaskCommand) storage.Task {
 		}
 	}
 	return storage.Task{
-		Id:            id,
-		Status:        command.Status,
-		Name:          command.Name,
-		Cron:          command.Cron,
-		Delay:         command.Delay,
-		RetryNumber:   command.RetryNumber,
-		RetryInterval: command.RetryInterval,
-		Url:           command.Url,
-		Method:        command.Method,
-		Body:          command.Body,
-		Header:        headerJson,
+		Id:         id,
+		Status:     command.Status,
+		Name:       command.Name,
+		Cron:       command.Cron,
+		Delay:      command.Delay,
+		RetryMax:   command.RetryMax,
+		RetryCycle: command.RetryCycle,
+		Url:        command.Url,
+		Method:     command.Method,
+		Body:       command.Body,
+		Header:     headerJson,
 	}
 }
