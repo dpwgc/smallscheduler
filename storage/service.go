@@ -31,12 +31,20 @@ func (s *Service) ExecuteTask(id int64) (int64, error) {
 	return s.repository.ExecuteTask(id)
 }
 
-func (s *Service) SaveTask(task Task) (int64, error) {
-	err := s.repository.AddTaskEditVersion()
+func (s *Service) AddTask(task Task) (int64, error) {
+	err := s.repository.ChangeTaskEditVersion()
 	if err != nil {
 		return 0, err
 	}
-	return s.repository.SaveTask(task)
+	return s.repository.AddTask(task)
+}
+
+func (s *Service) EditTask(task Task) error {
+	err := s.repository.ChangeTaskEditVersion()
+	if err != nil {
+		return err
+	}
+	return s.repository.EditTask(task)
 }
 
 func (s *Service) DeleteTask(id int64) error {

@@ -79,15 +79,16 @@ func (r *Repository) ExecuteTask(id int64) (int64, error) {
 	return sql.RowsAffected, nil
 }
 
-func (r *Repository) SaveTask(task Task) (int64, error) {
+func (r *Repository) AddTask(task Task) (int64, error) {
 	task.UpdatedAt = time.Now()
-	if task.Id > 0 {
-		return task.Id, r.DB.Table("task").Where("id = ?", task.Id).Updates(&task).Error
-	} else {
-		task.CreatedAt = task.UpdatedAt
-		task.Status = 1
-		return task.Id, r.DB.Table("task").Create(&task).Error
-	}
+	task.CreatedAt = task.UpdatedAt
+	task.Status = 1
+	return task.Id, r.DB.Table("task").Create(&task).Error
+}
+
+func (r *Repository) EditTask(task Task) error {
+	task.UpdatedAt = time.Now()
+	return r.DB.Table("task").Where("id = ?", task.Id).Updates(&task).Error
 }
 
 func (r *Repository) DeleteTask(id int64) error {
@@ -117,7 +118,7 @@ func (r *Repository) ListRecord(taskId int64, startTime string, endTime string, 
 	return recordList, total, err
 }
 
-func (r *Repository) AddTaskEditVersion() error {
+func (r *Repository) ChangeTaskEditVersion() error {
 	return r.DB.Table("metadata").Where("id = ?", 1).UpdateColumn("task_edit_version", gorm.Expr("task_edit_version + ?", 1)).Error
 }
 
@@ -139,15 +140,7 @@ func loadDB() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = db.AutoMigrate(&Metadata{})
-	if err != nil {
-		return nil, err
-	}
-	err = db.AutoMigrate(&Task{})
-	if err != nil {
-		return nil, err
-	}
-	err = db.AutoMigrate(&Record{})
+	err = db.AutoMigrate(&Metadata{}, &Task{}, &Record{})
 	if err != nil {
 		return nil, err
 	}

@@ -75,7 +75,7 @@ func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httproute
 		c.error(w, CommandParamErrorType, tip)
 		return
 	}
-	id, err := c.service.SaveTask(c.buildTask(0, cmd))
+	id, err := c.service.AddTask(c.buildTask(0, cmd))
 	if err != nil {
 		c.error(w, ServiceErrorType, err.Error())
 		return
@@ -102,7 +102,7 @@ func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprout
 		c.error(w, UnmarshalErrorType, err.Error())
 		return
 	}
-	_, err = c.service.SaveTask(c.buildTask(id, cmd))
+	err = c.service.EditTask(c.buildTask(id, cmd))
 	if err != nil {
 		c.error(w, ServiceErrorType, err.Error())
 		return
