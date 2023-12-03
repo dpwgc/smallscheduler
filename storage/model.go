@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -33,4 +35,10 @@ type Record struct {
 	Code       int32     `gorm:"column:code;not null;type:int(11);default:0;"`
 	TimeCost   int32     `gorm:"column:time_cost;not null;type:int(11);default:0;"`
 	RetryCount int32     `gorm:"column:retry_count;not null;type:int(11);default:0;"`
+}
+
+func (Record) TableName() string {
+	dateStr := time.Now().Format("2006-01-02")
+	dateArr := strings.Split(dateStr, "-")
+	return fmt.Sprintf("record_%s_%s", dateArr[0], dateArr[1])
 }

@@ -96,26 +96,20 @@ func (r *Repository) DeleteTask(id int64) error {
 }
 
 func (r *Repository) AddRecord(record Record) error {
-	return r.DB.Table("record").Create(&record).Error
+	err := r.DB.AutoMigrate(&Record{})
+	if err != nil {
+		return err
+	}
+	return r.DB.Model(&Record{}).Create(&record).Error
 }
 
-func (r *Repository) ListRecord(taskId int64, startTime string, endTime string, pageIndex int, pageSize int) ([]Record, int64, error) {
+func (r *Repository) ListRecord(taskId int64, sharding string, pageIndex int, pageSize int) ([]Record, int64, error) {
 	var recordList []Record
 	var total int64
-	sql := r.DB.Model(&Record{}).Where("task_id = ?", taskId)
-	if len(startTime) > 0 {
-		sql = sql.Where("executed_at >= ?", startTime)
-	}
-	if len(endTime) > 0 {
-		sql = sql.Where("executed_at <= ?", endTime)
-	}
-	if len(startTime) == 0 && len(endTime) == 0 {
-		var task Task
-		r.DB.Model(&Task{}).Select("total").Where("id = ?", taskId).First(&task)
-		total = task.Total
-	} else {
-		sql.Count(&total)
-	}
+	sql := r.DB.Table(fmt.Sprintf("record_%s", sharding)).Where("task_id = ?", taskId)
+	var task Task
+	r.DB.Model(&Task{}).Select("total").Where("id = ?", taskId).First(&task)
+	total = task.Total
 	sql = sql.Order("id desc").Limit(pageSize).Offset((pageIndex - 1) * pageSize)
 	err := sql.Find(&recordList).Error
 	return recordList, total, err
@@ -143,7 +137,7 @@ func loadDB() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = db.AutoMigrate(&Metadata{}, &Task{}, &Record{})
+	err = db.AutoMigrate(&Metadata{}, &Task{})
 	if err != nil {
 		return nil, err
 	}

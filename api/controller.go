@@ -2,11 +2,14 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"io"
 	"net/http"
 	"smallscheduler/storage"
 	"strconv"
+	"strings"
+	"time"
 )
 
 func NewController() (*Controller, error) {
@@ -138,8 +141,12 @@ func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httpro
 		c.error(w, QueryParamErrorType, err.Error())
 		return
 	}
-	startTime := values.Get("startTime")
-	endTime := values.Get("endTime")
+	sharding := values.Get("sharding")
+	if len(sharding) == 0 {
+		dateStr := time.Now().Format("2006-01-02")
+		dateArr := strings.Split(dateStr, "-")
+		sharding = fmt.Sprintf("%s_%s", dateArr[0], dateArr[1])
+	}
 	pageIndex, err := strconv.Atoi(values.Get("pageIndex"))
 	if err != nil {
 		c.error(w, QueryParamErrorType, err.Error())
@@ -151,7 +158,7 @@ func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httpro
 		return
 	}
 
-	list, total, err := c.service.ListRecord(taskId, startTime, endTime, pageIndex, pageSize)
+	list, total, err := c.service.ListRecord(taskId, sharding, pageIndex, pageSize)
 	if err != nil {
 		c.error(w, ServiceErrorType, err.Error())
 		return

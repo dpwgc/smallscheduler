@@ -55,8 +55,8 @@ func (s *Service) AddRecord(record Record) error {
 	return s.repository.AddRecord(record)
 }
 
-func (s *Service) ListRecord(taskId int64, startTime string, endTime string, pageIndex int, pageSize int) ([]Record, int64, error) {
-	return s.repository.ListRecord(taskId, startTime, endTime, pageIndex, pageSize)
+func (s *Service) ListRecord(taskId int64, sharding string, pageIndex int, pageSize int) ([]Record, int64, error) {
+	return s.repository.ListRecord(taskId, sharding, pageIndex, pageSize)
 }
 
 func (s *Service) GetTaskEditVersion() (int64, error) {
