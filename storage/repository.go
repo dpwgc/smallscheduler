@@ -111,7 +111,7 @@ func (r *Repository) ListRecord(taskId int64, startTime string, endTime string, 
 	}
 	if len(startTime) == 0 && len(endTime) == 0 {
 		var task Task
-		r.DB.Model(&Task{}).Select("total").Where("id = ?", task).First(&task)
+		r.DB.Model(&Task{}).Select("total").Where("id = ?", taskId).First(&task)
 		total = task.Total
 	} else {
 		sql.Count(&total)
