@@ -109,7 +109,13 @@ func (r *Repository) ListRecord(taskId int64, startTime string, endTime string, 
 	if len(endTime) > 0 {
 		sql = sql.Where("executed_at <= ?", endTime)
 	}
-	sql.Count(&total)
+	if len(startTime) == 0 && len(endTime) == 0 {
+		var task Task
+		r.DB.Model(&Task{}).Select("total").Where("id = ?", task).First(&task)
+		total = task.Total
+	} else {
+		sql.Count(&total)
+	}
 	sql = sql.Order("id desc").Limit(pageSize).Offset((pageIndex - 1) * pageSize)
 	err := sql.Find(&recordList).Error
 	return recordList, total, err
