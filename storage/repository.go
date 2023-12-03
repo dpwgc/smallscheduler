@@ -107,9 +107,7 @@ func (r *Repository) ListRecord(taskId int64, sharding string, pageIndex int, pa
 	var recordList []Record
 	var total int64
 	sql := r.DB.Table(fmt.Sprintf("record_%s", sharding)).Where("task_id = ?", taskId)
-	var task Task
-	r.DB.Model(&Task{}).Select("total").Where("id = ?", taskId).First(&task)
-	total = task.Total
+	sql.Count(&total)
 	sql = sql.Order("id desc").Limit(pageSize).Offset((pageIndex - 1) * pageSize)
 	err := sql.Find(&recordList).Error
 	return recordList, total, err

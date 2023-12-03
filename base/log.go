@@ -10,7 +10,7 @@ const (
 	LogErrorTag         = "[ERROR]"
 	LogWarnTag          = "[WARN]"
 	LogInfoTag          = "[INFO]"
-	LogFilePath         = "./logs/runtime.%Y-%m-%d.log"
+	LogFilePath         = "./log/runtime.%Y-%m-%d.log"
 	LogFileRotationTime = time.Duration(24) * time.Hour
 )
 
