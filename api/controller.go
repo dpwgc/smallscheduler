@@ -142,7 +142,7 @@ func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httpro
 		return
 	}
 	sharding := values.Get("sharding")
-	if len(sharding) == 0 {
+	if len(sharding) < 7 {
 		dateStr := time.Now().Format("2006-01-02")
 		dateArr := strings.Split(dateStr, "-")
 		sharding = fmt.Sprintf("%s_%s", dateArr[0], dateArr[1])

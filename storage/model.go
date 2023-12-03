@@ -16,7 +16,7 @@ type Task struct {
 	Status     int32     `gorm:"column:status;not null;type:int(11);default:2;"`
 	CreatedAt  time.Time `gorm:"column:created_at;not null;type:datetime;default:CURRENT_TIMESTAMP;"`
 	UpdatedAt  time.Time `gorm:"column:updated_at;not null;type:datetime;default:CURRENT_TIMESTAMP;"`
-	Name       string    `gorm:"column:name;index:uni_name,unique;not null;type:varchar(100);default:'';"`
+	Name       string    `gorm:"column:name;index:idx_name;not null;type:varchar(100);default:'';"`
 	Cron       string    `gorm:"column:cron;index:idx_cron;not null;type:varchar(40);default:'';"`
 	RetryMax   int32     `gorm:"column:retry_max;not null;type:int(11);default:0;"`
 	RetryCycle int32     `gorm:"column:retry_cycle;not null;type:int(11);default:0;"`
