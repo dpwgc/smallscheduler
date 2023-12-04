@@ -44,7 +44,7 @@ func InitHttpRouter() {
 // 中间件
 func middleware(h ...httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		base.Logger.Info("api", slog.String("uri", r.RequestURI), slog.String("method", r.Method), slog.String("remoteAddr", r.RemoteAddr))
+		base.Logger.Info(fmt.Sprintf("[%s]%s", r.Method, r.RequestURI), slog.String("remoteAddr", r.RemoteAddr), slog.Int64("contentLength", r.ContentLength))
 		for _, handler := range h {
 			handler(w, r, p)
 		}
