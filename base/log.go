@@ -1,25 +1,32 @@
 package base
 
 import (
-	"github.com/lestrrat-go/file-rotatelogs"
-	"log"
+	"gopkg.in/natefinch/lumberjack.v2"
+	"log/slog"
 	"time"
 )
 
-const (
-	LogErrorTag         = "[ERROR]"
-	LogWarnTag          = "[WARN]"
-	LogInfoTag          = "[INFO]"
-	LogFilePath         = "./log/runtime.%Y-%m-%d.log"
-	LogFileRotationTime = time.Duration(24) * time.Hour
-)
+var Logger *slog.Logger
 
 func InitLog() {
-	writer, _ := rotatelogs.New(
-		LogFilePath,
-		rotatelogs.WithMaxAge(time.Duration(Config().Log.FileMaxAge*24)*time.Hour),
-		rotatelogs.WithRotationTime(LogFileRotationTime),
-	)
-	log.SetFlags(log.Llongfile | log.Lmicroseconds | log.Ldate)
-	log.SetOutput(writer)
+	r := &lumberjack.Logger{
+		Filename:   "./logs/small-scheduler.log",
+		LocalTime:  true,
+		MaxSize:    Config().Log.MaxSize,
+		MaxAge:     Config().Log.MaxAge,
+		MaxBackups: Config().Log.MaxBackups,
+		Compress:   false,
+	}
+	Logger = slog.New(slog.NewJSONHandler(r, &slog.HandlerOptions{
+		AddSource: true, // 输出日志语句的位置信息
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == slog.TimeKey { // 格式化 key 为 "time" 的属性值
+				if t, ok := a.Value.Any().(time.Time); ok {
+					a.Value = slog.StringValue(t.Format(time.DateTime))
+				}
+			}
+			return a
+		},
+	}))
+	Logger.Info("log module is loaded successfully")
 }

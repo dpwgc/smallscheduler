@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/robfig/cron/v3"
-	"log"
 	"smallscheduler/base"
 	"smallscheduler/storage"
 	"sync"
@@ -22,7 +21,7 @@ var taskEditVersion atomic.Value
 func InitWorkers() {
 	s, err := storage.NewService()
 	if err != nil {
-		log.Fatal(base.LogErrorTag, err)
+		base.Logger.Error(err.Error())
 		return
 	}
 	service = s
@@ -32,20 +31,27 @@ func InitWorkers() {
 		for {
 			latestVersion, err := service.GetTaskEditVersion()
 			if err != nil {
-				log.Println(base.LogErrorTag, err)
+				base.Logger.Error(err.Error())
 				continue
 			}
 			if latestVersion == taskEditVersion.Load().(int64) {
 				continue
 			}
+
 			// 加载两次，避免被覆盖
 			loadWorkers()
 			time.Sleep(TaskListRefreshCycle)
 			loadWorkers()
+
+			// 更新版本号
 			taskEditVersion.Store(latestVersion)
+
+			base.Logger.Info("scheduler workers data is loaded successfully")
+
 			time.Sleep(TaskListRefreshCycle)
 		}
 	}()
+	base.Logger.Info("scheduler background program is loaded successfully")
 }
 
 // 加载工作者列表
@@ -53,7 +59,7 @@ func loadWorkers() {
 	// 获取当前系统中的所有任务的cron表达式
 	cronList, err := service.ListStartedCron()
 	if err != nil {
-		log.Println(base.LogErrorTag, err)
+		base.Logger.Error(err.Error())
 	}
 	//为每个cron表达式生成一个工作者
 	for _, cronStr := range cronList {
@@ -74,13 +80,15 @@ func loadWorker(cronStr string) {
 		execute(cronStr)
 	})
 	if err != nil {
-		log.Println(base.LogErrorTag, err)
+		base.Logger.Error(err.Error())
 		return
 	}
 	//启动工作者
 	worker.Start()
 	//将该工作者装入工作者列表
 	workerFactory.Store(cronStr, worker)
+
+	base.Logger.Info("a new worker is created")
 }
 
 // NewCronWorker 返回一个支持至 秒 级别的 cron

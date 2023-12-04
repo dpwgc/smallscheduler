@@ -25,8 +25,12 @@ db:
   dsn: root:123456@tcp(127.0.0.1:3306)/small_scheduler?charset=utf8mb4&parseTime=True&loc=Local
 # 日志配置
 log:
-  # 自动删除30天外的日志文件
-  file-max-age: 30
+  # 单个日志文件最大容量（单位：mb）
+  max-size: 1
+  # 日志文件存活时间（单位：天）
+  max-age: 7
+  # 最多可以存在多少个日志文件
+  max-backups: 1000
 ```
 ### 1、运行 `main.go`
 ### 2、访问网页控制台 `http://localhost:9088/v1/web/`

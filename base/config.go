@@ -1,12 +1,11 @@
 package base
 
 import (
+	"fmt"
 	"gopkg.in/yaml.v3"
-	"log"
 	"os"
+	"time"
 )
-
-const ConfigFilePath = "./config.yaml"
 
 var config ConfigModel
 
@@ -19,7 +18,9 @@ type ConfigModel struct {
 		Dsn string `yaml:"dsn"`
 	} `yaml:"db"`
 	Log struct {
-		FileMaxAge int `yaml:"file-max-age"`
+		MaxSize    int `yaml:"max-size"`
+		MaxAge     int `yaml:"max-age"`
+		MaxBackups int `yaml:"max-backups"`
 	} `yaml:"log"`
 }
 
@@ -29,14 +30,16 @@ func Config() ConfigModel {
 
 func InitConfig() {
 	//加载客户端配置
-	configBytes, err := os.ReadFile(ConfigFilePath)
+	configBytes, err := os.ReadFile("./config.yaml")
 	if err != nil {
-		log.Println(LogErrorTag, err)
+		fmt.Println("config error:", err)
+		time.Sleep(3 * time.Second)
 		panic(err)
 	}
 	err = yaml.Unmarshal(configBytes, &config)
 	if err != nil {
-		log.Println(LogErrorTag, err)
+		fmt.Println("config error:", err)
+		time.Sleep(3 * time.Second)
 		panic(err)
 	}
 }

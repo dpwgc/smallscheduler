@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/robfig/cron/v3"
 	"io"
-	"log"
 	"net/http"
 	"smallscheduler/base"
 	"smallscheduler/storage"
@@ -26,7 +25,7 @@ func execute(cronStr string) {
 	//获取该cron下的所有任务
 	taskList, err := service.ListStartedTaskByCron(cronStr)
 	if err != nil {
-		log.Println(base.LogErrorTag, err)
+		base.Logger.Error(err.Error())
 	}
 	//如果任务列表长度为0，则删除该工作者
 	if len(taskList) == 0 {
@@ -34,13 +33,14 @@ func execute(cronStr string) {
 		worker.(*cron.Cron).Stop()
 		workerFactory.Delete(cronStr)
 		worker = nil
+		base.Logger.Info("a invalid worker is deleted")
 	}
 	//循环请求
 	for _, task := range taskList {
 		go func(task storage.Task) {
 			yes, err := service.TryExecuteTask(task)
 			if err != nil {
-				log.Println(base.LogErrorTag, err)
+				base.Logger.Error(err.Error())
 				return
 			}
 			if yes == 0 {
@@ -58,7 +58,7 @@ func execute(cronStr string) {
 				record.TimeCost = int32(timeCost)
 				err = service.AddRecord(record)
 				if err != nil {
-					log.Println(base.LogErrorTag, err)
+					base.Logger.Error(err.Error())
 				}
 				if record.Code >= 200 && record.Code < 300 {
 					break
@@ -105,7 +105,7 @@ func request(method, url, body, header string) (int, int64, string) {
 	defer func(body io.ReadCloser) {
 		err = body.Close()
 		if err != nil {
-			log.Println(base.LogErrorTag, err)
+			base.Logger.Error(err.Error())
 		}
 	}(response.Body)
 	resultBytes, err := io.ReadAll(response.Body)

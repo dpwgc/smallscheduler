@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/julienschmidt/httprouter"
-	"log"
+	"log/slog"
 	"net/http"
 	"smallscheduler/base"
 )
@@ -13,9 +13,11 @@ func InitHttpRouter() {
 
 	controller, err := NewController()
 	if err != nil {
-		log.Fatal(base.LogErrorTag, err)
+		base.Logger.Error(err.Error())
 		return
 	}
+
+	base.Logger.Info("start http router")
 
 	router := httprouter.New()
 
@@ -33,7 +35,8 @@ func InitHttpRouter() {
 	port := base.Config().Server.Port
 	err = http.ListenAndServe(fmt.Sprintf(":%v", port), router)
 	if err != nil {
-		log.Fatal(base.LogErrorTag, err)
+		base.Logger.Error(err.Error())
+		panic(err)
 		return
 	}
 }
@@ -41,7 +44,7 @@ func InitHttpRouter() {
 // 中间件
 func middleware(h ...httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		// TODO
+		base.Logger.Info("api", slog.String("uri", r.RequestURI), slog.String("method", r.Method), slog.String("remoteAddr", r.RemoteAddr))
 		for _, handler := range h {
 			handler(w, r, p)
 		}

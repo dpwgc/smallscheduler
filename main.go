@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	base.InitLog()
 	base.InitConfig()
+	base.InitLog()
 	core.InitWorkers()
 	api.InitHttpRouter()
 }

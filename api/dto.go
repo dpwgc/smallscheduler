@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"smallscheduler/base"
 	"smallscheduler/core"
@@ -94,7 +93,7 @@ func (c *Controller) write(w http.ResponseWriter, code int, body []byte) {
 	w.WriteHeader(code)
 	_, err := w.Write(body)
 	if err != nil {
-		log.Println(base.LogErrorTag, err)
+		base.Logger.Error(err.Error())
 		return
 	}
 }
