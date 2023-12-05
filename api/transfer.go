@@ -121,7 +121,7 @@ func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
 	if len(command.Url) == 0 {
 		return "url is empty"
 	}
-	if !strings.HasPrefix(command.Url, "http") && !strings.HasPrefix(command.Url, "HTTP") {
+	if !strings.HasPrefix(command.Url, "http") && !strings.HasPrefix(command.Url, "HTTP") && !strings.HasPrefix(command.Url, "Http") {
 		return "url must start with http"
 	}
 	if len(command.Cron) == 0 {
@@ -152,7 +152,7 @@ func (c *Controller) checkEditTaskCommand(command model.TaskCommand) string {
 			return "cron spec error: " + err.Error()
 		}
 	}
-	if len(command.Url) > 0 && !strings.HasPrefix(command.Url, "http") && !strings.HasPrefix(command.Url, "HTTP") {
+	if len(command.Url) > 0 && !strings.HasPrefix(command.Url, "http") && !strings.HasPrefix(command.Url, "HTTP") && !strings.HasPrefix(command.Url, "Http") {
 		return "url must start with http"
 	}
 	if len(command.Method) > 0 && command.Method != "GET" && command.Method != "POST" && command.Method != "PUT" && command.Method != "PATCH" && command.Method != "DELETE" {
