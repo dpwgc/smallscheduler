@@ -8,6 +8,7 @@ type PageDTO struct {
 type TaskCommand struct {
 	Status     int32             `json:"status"`
 	Name       string            `json:"name"`
+	Tag        string            `json:"tag"`
 	Cron       string            `json:"cron"`
 	RetryMax   int32             `json:"retryMax"`
 	RetryCycle int32             `json:"retryCycle"`
@@ -21,6 +22,7 @@ type TaskDTO struct {
 	Id         int64             `json:"id"`
 	Status     int32             `json:"status"`
 	Name       string            `json:"name"`
+	Tag        string            `json:"tag"`
 	Cron       string            `json:"cron"`
 	RetryMax   int32             `json:"retryMax"`
 	RetryCycle int32             `json:"retryCycle"`
