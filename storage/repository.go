@@ -25,10 +25,8 @@ func (r *Repository) ListTask(name string, tag string, cron string, status int, 
 	var taskList []model.Task
 	var total int64
 	sql := r.DB.Model(&model.Task{})
-	if status != 0 {
+	if status > 0 {
 		sql = sql.Where("status = ?", status)
-	} else {
-		sql = sql.Where("status > ?", 0)
 	}
 	if len(name) > 0 {
 		sql = sql.Where(fmt.Sprintf("name like %q", "%"+name+"%"))
@@ -47,7 +45,7 @@ func (r *Repository) ListTask(name string, tag string, cron string, status int, 
 
 func (r *Repository) GetTask(id int64) (model.Task, error) {
 	var task model.Task
-	err := r.DB.Model(&model.Task{}).Where("id = ? and status > ?", 0).First(&task).Error
+	err := r.DB.Model(&model.Task{}).Where("id = ?", id).First(&task).Error
 	if err != nil {
 		return model.Task{}, err
 	}
@@ -57,10 +55,8 @@ func (r *Repository) GetTask(id int64) (model.Task, error) {
 func (r *Repository) ListTagCount(status int) ([]model.TagCount, error) {
 	var tagCountList []model.TagCount
 	sql := r.DB.Table("task").Select("tag", "count(*) as total")
-	if status != 0 {
+	if status > 0 {
 		sql = sql.Where("status = ?", status)
-	} else {
-		sql = sql.Where("status > ?", 0)
 	}
 	err := sql.Group("tag").Find(&tagCountList).Error
 	if err != nil {
@@ -72,10 +68,8 @@ func (r *Repository) ListTagCount(status int) ([]model.TagCount, error) {
 func (r *Repository) ListCronCount(status int) ([]model.CronCount, error) {
 	var cronCountList []model.CronCount
 	sql := r.DB.Table("task").Select("cron", "count(*) as number")
-	if status != 0 {
+	if status > 0 {
 		sql = sql.Where("status = ?", status)
-	} else {
-		sql = sql.Where("status > ?", 0)
 	}
 	err := sql.Group("cron").Find(&cronCountList).Error
 	if err != nil {
@@ -123,11 +117,7 @@ func (r *Repository) EditTask(task model.Task) error {
 }
 
 func (r *Repository) DeleteTask(id int64) error {
-	return r.EditTask(model.Task{
-		Id:        id,
-		Status:    -1,
-		UpdatedAt: time.Now(),
-	})
+	return r.DB.Table("task").Delete(model.Task{}, id).Error
 }
 
 func (r *Repository) AddRecord(record model.Record) error {
