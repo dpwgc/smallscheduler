@@ -7,17 +7,9 @@ import (
 	"io"
 	"net/http"
 	"smallscheduler/base"
-	"smallscheduler/storage"
+	"smallscheduler/model"
 	"strings"
 	"time"
-)
-
-const (
-	Post   = "POST"
-	Get    = "GET"
-	Put    = "PUT"
-	Patch  = "PATCH"
-	Delete = "DELETE"
 )
 
 // 批量执行任务
@@ -37,7 +29,7 @@ func execute(cronStr string) {
 	}
 	//循环请求
 	for _, task := range taskList {
-		go func(task storage.Task) {
+		go func(task model.Task) {
 			yes, err := service.TryExecuteTask(task)
 			if err != nil {
 				base.Logger.Error(err.Error())
@@ -47,7 +39,7 @@ func execute(cronStr string) {
 				return
 			}
 			for i := 0; i <= int(task.RetryMax); i++ {
-				record := storage.Record{
+				record := model.Record{
 					TaskId:     task.Id,
 					RetryCount: int32(i),
 					ExecutedAt: time.Now(),
@@ -72,7 +64,7 @@ func execute(cronStr string) {
 }
 
 func request(method, url, body, header string) (int, int64, string) {
-	if method != Post && method != Get && method != Put && method != Patch && method != Delete {
+	if method != "POST" && method != "GET" && method != "PUT" && method != "PATCH" && method != "DELETE" {
 		return -1, 0, "http method is not match"
 	}
 	if len(url) == 0 {

@@ -1,4 +1,4 @@
-package storage
+package model
 
 import (
 	"fmt"
@@ -16,8 +16,9 @@ type Task struct {
 	Status     int32     `gorm:"column:status;not null;type:int(11);default:2;"`
 	CreatedAt  time.Time `gorm:"column:created_at;not null;type:datetime;default:CURRENT_TIMESTAMP;"`
 	UpdatedAt  time.Time `gorm:"column:updated_at;not null;type:datetime;default:CURRENT_TIMESTAMP;"`
-	Name       string    `gorm:"column:name;index:idx_name;not null;type:varchar(100);default:'';"`
+	Name       string    `gorm:"column:name;not null;type:varchar(100);default:'';"`
 	Cron       string    `gorm:"column:cron;index:idx_cron;not null;type:varchar(40);default:'';"`
+	Tag        string    `gorm:"column:tag;index:idx_tag;not null;type:varchar(40);default:'';"`
 	RetryMax   int32     `gorm:"column:retry_max;not null;type:int(11);default:0;"`
 	RetryCycle int32     `gorm:"column:retry_cycle;not null;type:int(11);default:0;"`
 	Url        string    `gorm:"column:url;type:text;"`
@@ -25,6 +26,16 @@ type Task struct {
 	Body       string    `gorm:"column:body;type:text;"`
 	Header     string    `gorm:"column:header;type:text;"`
 	Total      int64     `gorm:"column:total;not null;type:bigint(20);default:0;"`
+}
+
+type CronCount struct {
+	Cron   string `gorm:"column:cron;" json:"cron"`
+	Number int64  `gorm:"column:number;" json:"number"`
+}
+
+type TagCount struct {
+	Tag    string `gorm:"column:tag;" json:"tag"`
+	Number int64  `gorm:"column:number;" json:"number"`
 }
 
 type Record struct {

@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"smallscheduler/base"
 	"smallscheduler/core"
-	"smallscheduler/storage"
+	"smallscheduler/model"
+	"strings"
 )
 
 const (
@@ -21,58 +22,6 @@ const (
 	ServiceErrorType      = 30
 )
 
-type PageDTO struct {
-	Total int64 `json:"total"`
-	List  any   `json:"list"`
-}
-
-type TaskCommand struct {
-	Status     int32             `json:"status"`
-	Name       string            `json:"name"`
-	Cron       string            `json:"cron"`
-	RetryMax   int32             `json:"retryMax"`
-	RetryCycle int32             `json:"retryCycle"`
-	Url        string            `json:"url"`
-	Method     string            `json:"method"`
-	Body       string            `json:"body"`
-	Header     map[string]string `json:"header"`
-}
-
-type TaskDTO struct {
-	Id         int64             `json:"id"`
-	Status     int32             `json:"status"`
-	Name       string            `json:"name"`
-	Cron       string            `json:"cron"`
-	RetryMax   int32             `json:"retryMax"`
-	RetryCycle int32             `json:"retryCycle"`
-	Url        string            `json:"url"`
-	Method     string            `json:"method"`
-	Body       string            `json:"body"`
-	Header     map[string]string `json:"header"`
-	Total      int64             `json:"total"`
-	CreatedAt  int64             `json:"createdAt"`
-	UpdatedAt  int64             `json:"updatedAt"`
-}
-
-type RecordDTO struct {
-	Id         int64  `json:"id"`
-	TaskId     int64  `json:"taskId"`
-	ExecutedAt int64  `json:"executedAt"`
-	Result     string `json:"result"`
-	TimeCost   int32  `json:"timeCost"`
-	Code       int32  `json:"code"`
-	RetryCount int32  `json:"retryCount"`
-}
-
-type CreatedDTO struct {
-	Id int64 `json:"id"`
-}
-
-type ErrorDTO struct {
-	Type int    `json:"type"`
-	Msg  string `json:"msg"`
-}
-
 func (c *Controller) success(w http.ResponseWriter, code int, obj any) {
 	resultBytes := []byte("")
 	if obj != nil {
@@ -82,7 +31,7 @@ func (c *Controller) success(w http.ResponseWriter, code int, obj any) {
 }
 
 func (c *Controller) error(w http.ResponseWriter, eType int, msg string) {
-	resultBytes, _ := json.Marshal(ErrorDTO{
+	resultBytes, _ := json.Marshal(model.ErrorDTO{
 		Type: eType,
 		Msg:  msg,
 	})
@@ -98,12 +47,12 @@ func (c *Controller) write(w http.ResponseWriter, code int, body []byte) {
 	}
 }
 
-func (c *Controller) buildTaskDTO(task storage.Task) TaskDTO {
+func (c *Controller) buildTaskDTO(task model.Task) model.TaskDTO {
 	headerObj := map[string]string{}
 	if len(task.Header) > 0 {
 		_ = json.Unmarshal([]byte(task.Header), &headerObj)
 	}
-	return TaskDTO{
+	return model.TaskDTO{
 		Id:         task.Id,
 		Status:     task.Status,
 		Name:       task.Name,
@@ -120,24 +69,24 @@ func (c *Controller) buildTaskDTO(task storage.Task) TaskDTO {
 	}
 }
 
-func (c *Controller) buildTaskPageDTO(list []storage.Task, total int64) PageDTO {
-	var dtoList []TaskDTO
+func (c *Controller) buildTaskPageDTO(list []model.Task, total int64) model.PageDTO {
+	var dtoList []model.TaskDTO
 	if len(list) > 0 {
 		for _, v := range list {
 			dtoList = append(dtoList, c.buildTaskDTO(v))
 		}
 	}
-	return PageDTO{
+	return model.PageDTO{
 		Total: total,
 		List:  dtoList,
 	}
 }
 
-func (c *Controller) buildRecordPageDTO(list []storage.Record, total int64) PageDTO {
-	var dtoList []RecordDTO
+func (c *Controller) buildRecordPageDTO(list []model.Record, total int64) model.PageDTO {
+	var dtoList []model.RecordDTO
 	if len(list) > 0 {
 		for _, v := range list {
-			dtoList = append(dtoList, RecordDTO{
+			dtoList = append(dtoList, model.RecordDTO{
 				Id:         v.Id,
 				TaskId:     v.TaskId,
 				Result:     v.Result,
@@ -148,13 +97,23 @@ func (c *Controller) buildRecordPageDTO(list []storage.Record, total int64) Page
 			})
 		}
 	}
-	return PageDTO{
+	return model.PageDTO{
 		Total: total,
 		List:  dtoList,
 	}
 }
 
-func (c *Controller) checkAddTaskCommand(command TaskCommand) string {
+func (c *Controller) checkPageQueryParams(pageIndex int, pageSize int) string {
+	if pageIndex <= 0 {
+		return "page index must be greater than 0"
+	}
+	if pageSize < 0 {
+		return "page size must be greater than or equal to 0"
+	}
+	return ""
+}
+
+func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
 	if len(command.Name) == 0 {
 		return "name is empty"
 	}
@@ -164,6 +123,7 @@ func (c *Controller) checkAddTaskCommand(command TaskCommand) string {
 	if len(command.Cron) == 0 {
 		return "cron is empty"
 	}
+	command.Cron = strings.TrimSpace(command.Cron)
 	checkWorker := core.NewCronWorker()
 	defer func() {
 		checkWorker = nil
@@ -172,14 +132,15 @@ func (c *Controller) checkAddTaskCommand(command TaskCommand) string {
 	if err != nil {
 		return err.Error()
 	}
-	if command.Method != core.Get && command.Method != core.Post && command.Method != core.Put && command.Method != core.Patch && command.Method != core.Delete {
+	if command.Method != "GET" && command.Method != "POST" && command.Method != "PUT" && command.Method != "PATCH" && command.Method != "DELETE" {
 		return "method is not match"
 	}
 	return ""
 }
 
-func (c *Controller) checkEditTaskCommand(command TaskCommand) string {
+func (c *Controller) checkEditTaskCommand(command model.TaskCommand) string {
 	if len(command.Cron) > 0 {
+		command.Cron = strings.TrimSpace(command.Cron)
 		checkWorker := core.NewCronWorker()
 		defer func() {
 			checkWorker = nil
@@ -189,13 +150,13 @@ func (c *Controller) checkEditTaskCommand(command TaskCommand) string {
 			return "cron spec error: " + err.Error()
 		}
 	}
-	if len(command.Method) > 0 && command.Method != core.Get && command.Method != core.Post && command.Method != core.Put && command.Method != core.Patch && command.Method != core.Delete {
+	if len(command.Method) > 0 && command.Method != "GET" && command.Method != "POST" && command.Method != "PUT" && command.Method != "PATCH" && command.Method != "DELETE" {
 		return "method is not match"
 	}
 	return ""
 }
 
-func (c *Controller) buildTask(id int64, command TaskCommand) storage.Task {
+func (c *Controller) buildTask(id int64, command model.TaskCommand) model.Task {
 	headerJson := ""
 	if len(command.Header) > 0 {
 		headerBytes, err := json.Marshal(command.Header)
@@ -203,7 +164,7 @@ func (c *Controller) buildTask(id int64, command TaskCommand) storage.Task {
 			headerJson = string(headerBytes)
 		}
 	}
-	return storage.Task{
+	return model.Task{
 		Id:         id,
 		Status:     command.Status,
 		Name:       command.Name,

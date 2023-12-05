@@ -24,6 +24,9 @@ func InitHttpRouter() {
 	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/tasks"), middleware(controller.ListTask))
 	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/task/:id"), middleware(controller.GetTask))
 
+	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/tags"), middleware(controller.ListTag))
+	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/crons"), middleware(controller.ListCron))
+
 	router.POST(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/task"), middleware(controller.AddTask))
 	router.PUT(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/task/:id"), middleware(controller.EditTask))
 	router.DELETE(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/task/:id"), middleware(controller.DeleteTask))
