@@ -1,6 +1,9 @@
 package storage
 
-import "smallscheduler/model"
+import (
+	"smallscheduler/model"
+	"strings"
+)
 
 func NewService() (*Service, error) {
 	repository, err := NewRepository()
@@ -42,6 +45,10 @@ func (s *Service) TryExecuteTask(task model.Task) (int64, error) {
 }
 
 func (s *Service) AddTask(task model.Task) (int64, error) {
+	task.Cron = strings.TrimSpace(task.Cron)
+	task.Tag = strings.TrimSpace(task.Tag)
+	task.Name = strings.TrimSpace(task.Name)
+	task.Url = strings.TrimSpace(task.Url)
 	err := s.repository.ChangeTaskEditVersion()
 	if err != nil {
 		return 0, err
@@ -50,6 +57,10 @@ func (s *Service) AddTask(task model.Task) (int64, error) {
 }
 
 func (s *Service) EditTask(task model.Task) error {
+	task.Cron = strings.TrimSpace(task.Cron)
+	task.Tag = strings.TrimSpace(task.Tag)
+	task.Name = strings.TrimSpace(task.Name)
+	task.Url = strings.TrimSpace(task.Url)
 	err := s.repository.ChangeTaskEditVersion()
 	if err != nil {
 		return err

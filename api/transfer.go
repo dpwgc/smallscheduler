@@ -6,7 +6,6 @@ import (
 	"smallscheduler/base"
 	"smallscheduler/core"
 	"smallscheduler/model"
-	"strings"
 )
 
 const (
@@ -123,7 +122,6 @@ func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
 	if len(command.Cron) == 0 {
 		return "cron is empty"
 	}
-	command.Cron = strings.TrimSpace(command.Cron)
 	checkWorker := core.NewCronWorker()
 	defer func() {
 		checkWorker = nil
@@ -140,7 +138,6 @@ func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
 
 func (c *Controller) checkEditTaskCommand(command model.TaskCommand) string {
 	if len(command.Cron) > 0 {
-		command.Cron = strings.TrimSpace(command.Cron)
 		checkWorker := core.NewCronWorker()
 		defer func() {
 			checkWorker = nil
