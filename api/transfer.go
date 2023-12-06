@@ -61,6 +61,7 @@ func (c *Controller) buildTaskDTO(task model.Task) model.TaskDTO {
 		RetryMax:   task.RetryMax,
 		RetryCycle: task.RetryCycle,
 		Url:        task.Url,
+		BackupUrl:  task.BackupUrl,
 		Method:     task.Method,
 		Body:       task.Body,
 		Header:     headerObj,
@@ -92,6 +93,7 @@ func (c *Controller) buildRecordPageDTO(list []model.Record, total int64) model.
 				TaskId:     v.TaskId,
 				Result:     v.Result,
 				Code:       v.Code,
+				IsBackup:   v.IsBackup,
 				TimeCost:   v.TimeCost,
 				RetryCount: v.RetryCount,
 				ExecutedAt: v.ExecutedAt.UnixMilli(),
@@ -158,7 +160,7 @@ func (c *Controller) checkEditTaskCommand(command model.TaskCommand) string {
 	if len(command.Url) > 0 && !isValidUrl(command.Url) {
 		return "url format is incorrect"
 	}
-	if len(command.BackupUrl) > 0 && !!isValidUrl(command.BackupUrl) {
+	if len(command.BackupUrl) > 0 && !isValidUrl(command.BackupUrl) {
 		return "backup url format is incorrect"
 	}
 	if len(command.Method) > 0 && command.Method != "GET" && command.Method != "POST" && command.Method != "PUT" && command.Method != "PATCH" && command.Method != "DELETE" {
@@ -184,6 +186,7 @@ func (c *Controller) buildTask(id int64, command model.TaskCommand) model.Task {
 		RetryMax:   command.RetryMax,
 		RetryCycle: command.RetryCycle,
 		Url:        command.Url,
+		BackupUrl:  command.BackupUrl,
 		Method:     command.Method,
 		Body:       command.Body,
 		Header:     headerJson,
