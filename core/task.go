@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+var Shutdown = false
+
 // 批量执行任务
 func execute(cronStr string) {
 	//获取该cron下的所有任务
@@ -30,6 +32,9 @@ func execute(cronStr string) {
 	//循环请求
 	for _, task := range taskList {
 		go func(task model.Task) {
+			if Shutdown {
+				return
+			}
 			yes, err := service.TryExecuteTask(task)
 			if err != nil {
 				base.Logger.Error(err.Error())

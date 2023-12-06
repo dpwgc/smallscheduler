@@ -3,10 +3,10 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"smallscheduler/base"
 	"smallscheduler/core"
 	"smallscheduler/model"
-	"strings"
 )
 
 const (
@@ -121,11 +121,11 @@ func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
 	if len(command.Url) == 0 {
 		return "url is empty"
 	}
-	if !strings.HasPrefix(command.Url, "http") && !strings.HasPrefix(command.Url, "HTTP") && !strings.HasPrefix(command.Url, "Http") {
-		return "url must start with http"
+	if !isValidUrl(command.Url) {
+		return "url format is incorrect"
 	}
-	if len(command.BackupUrl) > 0 && !strings.HasPrefix(command.BackupUrl, "http") && !strings.HasPrefix(command.BackupUrl, "HTTP") && !strings.HasPrefix(command.BackupUrl, "Http") {
-		return "backup url must start with http"
+	if len(command.BackupUrl) > 0 && !isValidUrl(command.BackupUrl) {
+		return "backup url format is incorrect"
 	}
 	if len(command.Cron) == 0 {
 		return "cron is empty"
@@ -155,11 +155,11 @@ func (c *Controller) checkEditTaskCommand(command model.TaskCommand) string {
 			return "cron spec error: " + err.Error()
 		}
 	}
-	if len(command.Url) > 0 && !strings.HasPrefix(command.Url, "http") && !strings.HasPrefix(command.Url, "HTTP") && !strings.HasPrefix(command.Url, "Http") {
-		return "url must start with http"
+	if len(command.Url) > 0 && !isValidUrl(command.Url) {
+		return "url format is incorrect"
 	}
-	if len(command.BackupUrl) > 0 && !strings.HasPrefix(command.BackupUrl, "http") && !strings.HasPrefix(command.BackupUrl, "HTTP") && !strings.HasPrefix(command.BackupUrl, "Http") {
-		return "backup url must start with http"
+	if len(command.BackupUrl) > 0 && !!isValidUrl(command.BackupUrl) {
+		return "backup url format is incorrect"
 	}
 	if len(command.Method) > 0 && command.Method != "GET" && command.Method != "POST" && command.Method != "PUT" && command.Method != "PATCH" && command.Method != "DELETE" {
 		return "method is not match"
@@ -188,4 +188,23 @@ func (c *Controller) buildTask(id int64, command model.TaskCommand) model.Task {
 		Body:       command.Body,
 		Header:     headerJson,
 	}
+}
+
+func isValidUrl(sourceUrl string) bool {
+	if len(sourceUrl) < 6 {
+		return false
+	}
+	_, err := url.ParseRequestURI(sourceUrl)
+	if err != nil {
+		return false
+	}
+	u, err := url.Parse(sourceUrl)
+	if err != nil || len(u.Scheme) == 0 || len(u.Host) == 0 {
+		return false
+	}
+	// Check if the URL has a valid scheme (http or https)
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return false
+	}
+	return true
 }

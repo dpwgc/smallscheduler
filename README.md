@@ -31,6 +31,10 @@ log:
   max-age: 7
   # 最多可以存在多少个日志文件
   max-backups: 1000
+# 安全关闭服务配置
+shutdown:
+  # 调用服务关闭接口后，等待多少秒后停止服务
+  wait-time: 10
 ```
 ### 1、运行 `main.go`
 ### 2、访问网页控制台 `http://localhost:9088/v1/web/`
@@ -46,3 +50,20 @@ log:
 ```
 go build main.go
 ```
+
+***
+
+## 后台接口
+
+### 健康检查接口
+
+> `GET` http://localhost:9088/v1/health
+
+* 正常情况：HTTP状态码返回`200`
+* 正在等待关闭服务：HTTP状态码返回`400`
+ 
+### 安全关闭服务接口
+
+> `DELETE` http://localhost:9088/v1/shutdown
+
+* 调用`shutdown`接口后，会等待一段时间，然后关闭服务，等待期间只会继续执行那些已经在执行过程中的任务，不会再加载新的任务（避免正在运行的任务突然被打断）

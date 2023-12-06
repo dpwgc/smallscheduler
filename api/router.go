@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"smallscheduler/base"
+	"smallscheduler/core"
 )
 
 // InitHttpRouter HTTP路由配置
@@ -21,17 +22,22 @@ func InitHttpRouter() {
 
 	router := httprouter.New()
 
-	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/tasks"), middleware(controller.ListTask))
-	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/task/:id"), middleware(controller.GetTask))
+	contextPath := base.Config().Server.ContextPath
 
-	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/tags"), middleware(controller.ListTag))
-	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/crons"), middleware(controller.ListCron))
+	router.GET(fmt.Sprintf("%s%s", contextPath, "/tasks"), middleware(controller.ListTask))
+	router.GET(fmt.Sprintf("%s%s", contextPath, "/task/:id"), middleware(controller.GetTask))
 
-	router.POST(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/task"), middleware(controller.AddTask))
-	router.PUT(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/task/:id"), middleware(controller.EditTask))
-	router.DELETE(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/task/:id"), middleware(controller.DeleteTask))
+	router.GET(fmt.Sprintf("%s%s", contextPath, "/tags"), middleware(controller.ListTag))
+	router.GET(fmt.Sprintf("%s%s", contextPath, "/crons"), middleware(controller.ListCron))
 
-	router.GET(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/records"), middleware(controller.ListRecord))
+	router.POST(fmt.Sprintf("%s%s", contextPath, "/task"), middleware(controller.AddTask))
+	router.PUT(fmt.Sprintf("%s%s", contextPath, "/task/:id"), middleware(controller.EditTask))
+	router.DELETE(fmt.Sprintf("%s%s", contextPath, "/task/:id"), middleware(controller.DeleteTask))
+
+	router.GET(fmt.Sprintf("%s%s", contextPath, "/records"), middleware(controller.ListRecord))
+
+	router.GET(fmt.Sprintf("%s%s", contextPath, "/health"), controller.Health)
+	router.DELETE(fmt.Sprintf("%s%s", contextPath, "/shutdown"), controller.Shutdown)
 
 	router.ServeFiles(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/web/*filepath"), http.Dir("web"))
 
@@ -47,6 +53,14 @@ func InitHttpRouter() {
 // 中间件
 func middleware(h ...httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		if core.Shutdown {
+			w.WriteHeader(ErrorCode)
+			_, err := w.Write([]byte(""))
+			if err != nil {
+				base.Logger.Error(err.Error())
+			}
+			return
+		}
 		base.Logger.Info(fmt.Sprintf("[%s]%s", r.Method, r.RequestURI), slog.String("remoteAddr", r.RemoteAddr), slog.Int64("contentLength", r.ContentLength))
 		for _, handler := range h {
 			handler(w, r, p)

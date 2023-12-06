@@ -6,6 +6,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"io"
 	"net/http"
+	"os"
+	"smallscheduler/base"
+	"smallscheduler/core"
 	"smallscheduler/model"
 	"smallscheduler/storage"
 	"strconv"
@@ -212,4 +215,36 @@ func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httpro
 		return
 	}
 	c.success(w, OkCode, c.buildRecordPageDTO(list, total))
+}
+
+func (c *Controller) Health(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	if core.Shutdown {
+		w.WriteHeader(ErrorCode)
+	} else {
+		w.WriteHeader(OkCode)
+	}
+	_, err := w.Write([]byte(""))
+	if err != nil {
+		base.Logger.Error(err.Error())
+	}
+}
+
+func (c *Controller) Shutdown(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	if !core.Shutdown {
+		if strings.Contains(r.Host, "localhost") || strings.Contains(r.URL.Host, "127.0.0.1") || strings.Contains(r.URL.Host, "0.0.0.0") {
+			core.Shutdown = true
+			base.Logger.Warn(fmt.Sprintf("shutdown after %v seconds", base.Config().Shutdown.WaitTime))
+			go func() {
+				time.Sleep(time.Duration(base.Config().Shutdown.WaitTime) * time.Second)
+				os.Exit(1)
+			}()
+		} else {
+			base.Logger.Warn("only local shutdown requests are accepted")
+		}
+	}
+	w.WriteHeader(OkCode)
+	_, err := w.Write([]byte(""))
+	if err != nil {
+		base.Logger.Error(err.Error())
+	}
 }

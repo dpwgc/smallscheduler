@@ -22,6 +22,9 @@ type ConfigModel struct {
 		MaxAge     int `yaml:"max-age"`
 		MaxBackups int `yaml:"max-backups"`
 	} `yaml:"log"`
+	Shutdown struct {
+		WaitTime int `yaml:"wait-time"`
+	} `yaml:"shutdown"`
 }
 
 func Config() ConfigModel {
