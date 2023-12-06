@@ -38,29 +38,42 @@ func execute(cronStr string) {
 			if yes == 0 {
 				return
 			}
-			for i := 0; i <= int(task.RetryMax); i++ {
-				record := model.Record{
-					TaskId:     task.Id,
-					RetryCount: int32(i),
-					ExecutedAt: time.Now(),
-				}
-				code, timeCost, result := request(task.Method, task.Url, task.Body, task.Header)
-				record.Result = result
-				record.Code = int32(code)
-				record.TimeCost = int32(timeCost)
-				err = service.AddRecord(record)
-				if err != nil {
-					base.Logger.Error(err.Error())
-				}
-				if record.Code >= 200 && record.Code < 300 {
-					break
-				}
-				if task.RetryCycle > 0 {
-					time.Sleep(time.Duration(task.RetryCycle) * time.Millisecond)
-				}
+			// 使用主url发起请求
+			if handle(task, task.Url, 0) {
+				return
+			}
+			// 如果主url请求失败，且有备用url，使用备用url发起请求
+			if len(task.BackupUrl) > 0 {
+				handle(task, task.BackupUrl, 1)
 			}
 		}(task)
 	}
+}
+
+func handle(task model.Task, url string, isBackup int32) bool {
+	for i := 0; i <= int(task.RetryMax); i++ {
+		record := model.Record{
+			TaskId:     task.Id,
+			IsBackup:   isBackup,
+			RetryCount: int32(i),
+			ExecutedAt: time.Now(),
+		}
+		code, timeCost, result := request(task.Method, url, task.Body, task.Header)
+		record.Result = result
+		record.Code = int32(code)
+		record.TimeCost = int32(timeCost)
+		err := service.AddRecord(record)
+		if err != nil {
+			base.Logger.Error(err.Error())
+		}
+		if record.Code >= 200 && record.Code < 300 {
+			return true
+		}
+		if task.RetryCycle > 0 {
+			time.Sleep(time.Duration(task.RetryCycle) * time.Millisecond)
+		}
+	}
+	return false
 }
 
 func request(method, url, body, header string) (int, int64, string) {

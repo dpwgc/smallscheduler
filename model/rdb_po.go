@@ -22,6 +22,7 @@ type Task struct {
 	RetryMax   int32     `gorm:"column:retry_max;not null;type:int(11);default:0;"`
 	RetryCycle int32     `gorm:"column:retry_cycle;not null;type:int(11);default:0;"`
 	Url        string    `gorm:"column:url;type:text;"`
+	BackupUrl  string    `gorm:"column:backup_url;type:text;"`
 	Method     string    `gorm:"column:method;not null;type:varchar(6);default:'GET';"`
 	Body       string    `gorm:"column:body;type:text;"`
 	Header     string    `gorm:"column:header;type:text;"`
@@ -46,6 +47,7 @@ type Record struct {
 	Code       int32     `gorm:"column:code;not null;type:int(11);default:0;"`
 	TimeCost   int32     `gorm:"column:time_cost;not null;type:int(11);default:0;"`
 	RetryCount int32     `gorm:"column:retry_count;not null;type:int(11);default:0;"`
+	IsBackup   int32     `gorm:"column:is_backup;not null;type:int(11);default:0;"`
 }
 
 func (Record) TableName() string {

@@ -124,6 +124,9 @@ func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
 	if !strings.HasPrefix(command.Url, "http") && !strings.HasPrefix(command.Url, "HTTP") && !strings.HasPrefix(command.Url, "Http") {
 		return "url must start with http"
 	}
+	if len(command.BackupUrl) > 0 && !strings.HasPrefix(command.BackupUrl, "http") && !strings.HasPrefix(command.BackupUrl, "HTTP") && !strings.HasPrefix(command.BackupUrl, "Http") {
+		return "backup url must start with http"
+	}
 	if len(command.Cron) == 0 {
 		return "cron is empty"
 	}
@@ -154,6 +157,9 @@ func (c *Controller) checkEditTaskCommand(command model.TaskCommand) string {
 	}
 	if len(command.Url) > 0 && !strings.HasPrefix(command.Url, "http") && !strings.HasPrefix(command.Url, "HTTP") && !strings.HasPrefix(command.Url, "Http") {
 		return "url must start with http"
+	}
+	if len(command.BackupUrl) > 0 && !strings.HasPrefix(command.BackupUrl, "http") && !strings.HasPrefix(command.BackupUrl, "HTTP") && !strings.HasPrefix(command.BackupUrl, "Http") {
+		return "backup url must start with http"
 	}
 	if len(command.Method) > 0 && command.Method != "GET" && command.Method != "POST" && command.Method != "PUT" && command.Method != "PATCH" && command.Method != "DELETE" {
 		return "method is not match"
