@@ -34,6 +34,8 @@ func InitHttpRouter() {
 	router.PUT(fmt.Sprintf("%s%s", contextPath, "/task/:id"), middleware(controller.EditTask))
 	router.DELETE(fmt.Sprintf("%s%s", contextPath, "/task/:id"), middleware(controller.DeleteTask))
 
+	router.GET(fmt.Sprintf("%s%s", contextPath, "/execute/:id"), middleware(controller.ExecuteTask))
+
 	router.GET(fmt.Sprintf("%s%s", contextPath, "/records"), middleware(controller.ListRecord))
 
 	router.GET(fmt.Sprintf("%s%s", contextPath, "/health"), controller.Health)

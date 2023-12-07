@@ -30,16 +30,12 @@ type Controller struct {
 func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	values := r.URL.Query()
 
-	name := values.Get("name")
-	tag := values.Get("tag")
-	cron := values.Get("cron")
+	name := strings.TrimSpace(values.Get("name"))
+	tag := strings.TrimSpace(values.Get("tag"))
+	cron := strings.TrimSpace(values.Get("cron"))
 	status, _ := strconv.Atoi(values.Get("status"))
 	pageIndex, _ := strconv.Atoi(values.Get("pageIndex"))
 	pageSize, _ := strconv.Atoi(values.Get("pageSize"))
-
-	cron = strings.TrimSpace(cron)
-	tag = strings.TrimSpace(tag)
-	name = strings.TrimSpace(name)
 
 	tip := c.checkPageQueryParams(pageIndex, pageSize)
 	if len(tip) > 0 {
@@ -52,7 +48,7 @@ func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprout
 		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, OkCode, c.buildTaskPageDTO(list, total))
+	c.ok(w, c.buildTaskPageDTO(list, total))
 }
 
 func (c *Controller) GetTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -66,7 +62,11 @@ func (c *Controller) GetTask(w http.ResponseWriter, r *http.Request, p httproute
 		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, OkCode, c.buildTaskDTO(task))
+	if task.Id <= 0 {
+		c.error(w, ServiceErrorType, "task is empty")
+		return
+	}
+	c.ok(w, c.buildTaskDTO(task))
 }
 
 func (c *Controller) ListTag(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -78,7 +78,7 @@ func (c *Controller) ListTag(w http.ResponseWriter, r *http.Request, p httproute
 		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, OkCode, list)
+	c.ok(w, list)
 }
 
 func (c *Controller) ListCron(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -90,7 +90,7 @@ func (c *Controller) ListCron(w http.ResponseWriter, r *http.Request, p httprout
 		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, OkCode, list)
+	c.ok(w, list)
 }
 
 func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -122,7 +122,7 @@ func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httproute
 		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, CreatedCode, model.CreatedDTO{
+	c.created(w, model.CreatedDTO{
 		Id: id,
 	})
 }
@@ -160,7 +160,7 @@ func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprout
 		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, NoContentCode, nil)
+	c.noContent(w)
 }
 
 func (c *Controller) DeleteTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -174,7 +174,35 @@ func (c *Controller) DeleteTask(w http.ResponseWriter, r *http.Request, p httpro
 		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, NoContentCode, nil)
+	c.noContent(w)
+}
+
+func (c *Controller) ExecuteTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	id, err := strconv.ParseInt(p.ByName("id"), 10, 64)
+	if err != nil {
+		c.error(w, PathParamErrorType, err.Error())
+		return
+	}
+	task, err := c.service.GetTask(id)
+	if err != nil {
+		c.error(w, ServiceErrorType, err.Error())
+		return
+	}
+	if task.Id <= 0 {
+		c.error(w, ServiceErrorType, "task is empty")
+		return
+	}
+	go func() {
+		// 使用主url发起请求
+		if core.Handle(task, task.Url, 0) {
+			return
+		}
+		// 如果主url请求失败，且有备用url，使用备用url发起请求
+		if len(task.BackupUrl) > 0 {
+			core.Handle(task, task.BackupUrl, 1)
+		}
+	}()
+	c.noContent(w)
 }
 
 func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -185,17 +213,12 @@ func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httpro
 		c.error(w, QueryParamErrorType, err.Error())
 		return
 	}
-	startTime := values.Get("startTime")
-	endTime := values.Get("endTime")
+	startTime := strings.TrimSpace(values.Get("startTime"))
+	endTime := strings.TrimSpace(values.Get("endTime"))
+	sharding := strings.TrimSpace(values.Get("sharding"))
 	code, _ := strconv.Atoi(values.Get("code"))
-	sharding := values.Get("sharding")
-
 	pageIndex, _ := strconv.Atoi(values.Get("pageIndex"))
 	pageSize, _ := strconv.Atoi(values.Get("pageSize"))
-
-	startTime = strings.TrimSpace(startTime)
-	endTime = strings.TrimSpace(endTime)
-	sharding = strings.TrimSpace(sharding)
 
 	if len(sharding) < 7 {
 		dateStr := time.Now().Format("2006-01-02")
@@ -214,7 +237,7 @@ func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httpro
 		c.error(w, ServiceErrorType, err.Error())
 		return
 	}
-	c.success(w, OkCode, c.buildRecordPageDTO(list, total))
+	c.ok(w, c.buildRecordPageDTO(list, total))
 }
 
 func (c *Controller) Health(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -223,7 +246,7 @@ func (c *Controller) Health(w http.ResponseWriter, r *http.Request, p httprouter
 	} else {
 		w.WriteHeader(OkCode)
 	}
-	_, err := w.Write([]byte(""))
+	_, err := w.Write([]byte("1"))
 	if err != nil {
 		base.Logger.Error(err.Error())
 	}
@@ -243,7 +266,7 @@ func (c *Controller) Shutdown(w http.ResponseWriter, r *http.Request, p httprout
 		}
 	}
 	w.WriteHeader(OkCode)
-	_, err := w.Write([]byte(""))
+	_, err := w.Write([]byte("1"))
 	if err != nil {
 		base.Logger.Error(err.Error())
 	}

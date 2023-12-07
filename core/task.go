@@ -44,18 +44,18 @@ func execute(cronStr string) {
 				return
 			}
 			// 使用主url发起请求
-			if handle(task, task.Url, 0) {
+			if Handle(task, task.Url, 0) {
 				return
 			}
 			// 如果主url请求失败，且有备用url，使用备用url发起请求
 			if len(task.BackupUrl) > 0 {
-				handle(task, task.BackupUrl, 1)
+				Handle(task, task.BackupUrl, 1)
 			}
 		}(task)
 	}
 }
 
-func handle(task model.Task, url string, isBackup int32) bool {
+func Handle(task model.Task, url string, isBackup int32) bool {
 	for i := 0; i <= int(task.RetryMax); i++ {
 		record := model.Record{
 			TaskId:     task.Id,

@@ -22,6 +22,18 @@ const (
 	ServiceErrorType      = 30
 )
 
+func (c *Controller) ok(w http.ResponseWriter, obj any) {
+	c.success(w, OkCode, obj)
+}
+
+func (c *Controller) created(w http.ResponseWriter, obj any) {
+	c.success(w, CreatedCode, obj)
+}
+
+func (c *Controller) noContent(w http.ResponseWriter) {
+	c.success(w, NoContentCode, nil)
+}
+
 func (c *Controller) success(w http.ResponseWriter, code int, obj any) {
 	resultBytes := []byte("")
 	if obj != nil {
