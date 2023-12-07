@@ -94,7 +94,6 @@ func (r *Repository) ListStartedCron() ([]string, error) {
 }
 
 func (r *Repository) TryExecuteTask(task model.Task) (int64, error) {
-	task.UpdatedAt = time.Now()
 	sql := r.DB.Table("task").Where("id = ? and total = ?", task.Id, task.Total).UpdateColumn("total", gorm.Expr("total + ?", 1))
 	if sql.Error != nil {
 		return 0, sql.Error
