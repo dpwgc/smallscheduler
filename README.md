@@ -58,6 +58,15 @@ go build main.go
 
 ## 后台接口
 
+### 手动执行指定任务
+
+> `GET` http://localhost:9088/v1/execute/{taskId}
+
+#### 例：执行任务（id=1）-> http://localhost:9088/v1/execute/1
+
+* 正常情况：HTTP状态码返回`204`
+* 异常情况：HTTP状态码返回`400`
+
 ### 实例健康检查接口
 
 > `GET` http://localhost:9088/v1/health
