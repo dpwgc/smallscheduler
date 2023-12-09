@@ -39,7 +39,7 @@ func InitHttpRouter() {
 	router.GET(fmt.Sprintf("%s%s", contextPath, "/records"), middleware(controller.ListRecord))
 
 	router.GET(fmt.Sprintf("%s%s", contextPath, "/health"), controller.Health)
-	router.DELETE(fmt.Sprintf("%s%s", contextPath, "/shutdown"), controller.Shutdown)
+	router.GET(fmt.Sprintf("%s%s", contextPath, "/shutdown"), controller.Shutdown)
 
 	router.ServeFiles(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/web/*filepath"), http.Dir("web"))
 

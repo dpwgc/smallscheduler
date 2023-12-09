@@ -253,12 +253,14 @@ func (c *Controller) Health(w http.ResponseWriter, r *http.Request, p httprouter
 }
 
 func (c *Controller) Shutdown(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	if !core.Shutdown {
+	values := r.URL.Query()
+	wait, _ := strconv.Atoi(values.Get("wait"))
+	if !core.Shutdown && wait > 0 {
 		if strings.Contains(r.Host, "localhost") || strings.Contains(r.URL.Host, "127.0.0.1") || strings.Contains(r.URL.Host, "0.0.0.0") {
 			core.Shutdown = true
-			base.Logger.Warn(fmt.Sprintf("shutdown after %v seconds", base.Config().Shutdown.WaitTime))
+			base.Logger.Warn(fmt.Sprintf("shutdown after %v seconds", wait))
 			go func() {
-				time.Sleep(time.Duration(base.Config().Shutdown.WaitTime) * time.Second)
+				time.Sleep(time.Duration(wait) * time.Second)
 				os.Exit(1)
 			}()
 		} else {

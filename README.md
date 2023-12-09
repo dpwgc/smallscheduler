@@ -12,6 +12,12 @@
 
 ***
 
+![index](./image/index.png)
+![task](./image/task.png)
+![record](./image/record.png)
+
+***
+
 ## 使用方式
 ### 1、编辑项目配置文件 `config.yaml`
 * 一般只用改数据库配置，其他配置默认即可
@@ -22,6 +28,8 @@ server:
   port: 9088
   # 服务路径前缀
   context-path: /v1
+  # 任务执行时间锁，单位毫秒（代表500ms内不会重复执行同一个任务）
+  executed-lock-time: 500
 # 数据库配置
 db:
   # 数据库链接（指定一个新建的MySQL数据库即可，会自动建表）
@@ -34,18 +42,10 @@ log:
   max-age: 7
   # 最多可以存在多少个日志文件
   max-backups: 1000
-# 平滑关闭实例配置
-shutdown:
-  # 调用实例关闭接口10秒后停止实例
-  wait-time: 10
 ```
 ### 2、运行 `main.go` 或使用 `go build main.go` 命令将程序编译成可执行文件后，再运行可执行文件
 ### 3、访问网页控制台 `http://localhost:9088/v1/web/`
-### 4、在网页上配置与管理定时任务（如下图所示）
-
-![index](./image/index.png)
-![task](./image/task.png)
-![record](./image/record.png)
+### 4、在网页上配置与管理定时任务
 
 ***
 
@@ -76,6 +76,7 @@ go build main.go
  
 ### 平滑关闭实例接口
 
-> `DELETE` http://localhost:9088/v1/shutdown
+> `GET` http://localhost:9088/v1/shutdown?wait=10
 
-* 调用`shutdown`接口后，会在等待一段时间后关闭该实例，等待期间只会继续执行那些已经在执行过程中的任务，不会再加载新的任务（避免正在运行的任务突然被打断）
+* 参数 `wait` : 等待关闭时间（单位-秒），必须大于0
+* 调用`shutdown`接口后，会在等待10秒后关闭该实例，等待期间只会继续执行那些已经在执行过程中的任务，不会再加载新的任务（避免正在运行的任务突然被打断）

@@ -11,8 +11,9 @@ var config ConfigModel
 
 type ConfigModel struct {
 	Server struct {
-		Port        int    `yaml:"port"`
-		ContextPath string `yaml:"context-path"`
+		Port             int    `yaml:"port"`
+		ContextPath      string `yaml:"context-path"`
+		ExecutedLockTime int64  `yaml:"executed-lock-time"`
 	} `yaml:"server"`
 	Db struct {
 		Dsn string `yaml:"dsn"`
@@ -22,9 +23,6 @@ type ConfigModel struct {
 		MaxAge     int `yaml:"max-age"`
 		MaxBackups int `yaml:"max-backups"`
 	} `yaml:"log"`
-	Shutdown struct {
-		WaitTime int `yaml:"wait-time"`
-	} `yaml:"shutdown"`
 }
 
 func Config() ConfigModel {

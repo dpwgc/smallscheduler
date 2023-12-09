@@ -3,6 +3,7 @@ package rdb
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"smallscheduler/base"
 	"smallscheduler/model"
 	"time"
 )
@@ -94,7 +95,10 @@ func (r *Repository) ListStartedCron() ([]string, error) {
 }
 
 func (r *Repository) TryExecuteTask(task model.Task) (int64, error) {
-	sql := r.DB.Table("task").Where("id = ? and total = ?", task.Id, task.Total).UpdateColumn("total", gorm.Expr("total + ?", 1))
+	sql := r.DB.Table("task").Where("id = ? and total = ?", task.Id, task.Total).Updates(map[string]interface{}{
+		"total":     gorm.Expr("total + ?", 1),
+		"time_lock": time.Now().UnixMilli() + base.Config().Server.ExecutedLockTime,
+	})
 	if sql.Error != nil {
 		return 0, sql.Error
 	}

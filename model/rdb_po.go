@@ -27,6 +27,7 @@ type Task struct {
 	Body       string    `gorm:"column:body;type:text;"`
 	Header     string    `gorm:"column:header;type:text;"`
 	Total      int64     `gorm:"column:total;not null;type:bigint(20);default:0;"`
+	TimeLock   int64     `gorm:"column:time_lock;not null;type:bigint(20);default:0;"`
 }
 
 type CronCount struct {

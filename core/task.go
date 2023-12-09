@@ -35,6 +35,9 @@ func execute(cronStr string) {
 			if Shutdown {
 				return
 			}
+			if time.Now().UnixMilli() <= task.TimeLock {
+				return
+			}
 			yes, err := service.TryExecuteTask(task)
 			if err != nil {
 				base.Logger.Error(err.Error())
