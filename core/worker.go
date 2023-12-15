@@ -29,6 +29,7 @@ func InitWorkers() {
 	taskEditVersion.Store(version)
 	go func() {
 		for {
+			time.Sleep(TaskListRefreshCycle)
 			latestVersion, err := service.GetTaskEditVersion()
 			if err != nil {
 				base.Logger.Error(err.Error())
@@ -47,8 +48,6 @@ func InitWorkers() {
 			taskEditVersion.Store(latestVersion)
 
 			base.Logger.Info("scheduler workers data is loaded successfully")
-
-			time.Sleep(TaskListRefreshCycle)
 		}
 	}()
 	base.Logger.Info("scheduler background program is loaded successfully")
