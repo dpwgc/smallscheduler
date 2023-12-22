@@ -1,7 +1,6 @@
 package base
 
 import (
-	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -26,8 +25,24 @@ type ConfigModel struct {
 	} `yaml:"log"`
 }
 
-func ConfigJson() string {
-	marshal, err := json.Marshal(config)
+func ServerYaml() string {
+	marshal, err := yaml.Marshal(config.Server)
+	if err != nil {
+		return ""
+	}
+	return string(marshal)
+}
+
+func DbYaml() string {
+	marshal, err := yaml.Marshal(config.Db)
+	if err != nil {
+		return ""
+	}
+	return string(marshal)
+}
+
+func LogYaml() string {
+	marshal, err := yaml.Marshal(config.Log)
 	if err != nil {
 		return ""
 	}

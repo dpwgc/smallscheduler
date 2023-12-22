@@ -5,6 +5,7 @@ import (
 	"smallscheduler/api"
 	"smallscheduler/base"
 	"smallscheduler/core"
+	"strings"
 )
 
 func main() {
@@ -14,7 +15,9 @@ func main() {
 
 	base.InitConfig()
 
-	fmt.Println("[Config]:", base.ConfigJson())
+	fmt.Println("[Server]", strings.ReplaceAll(base.ServerYaml(), "\n", " "))
+	fmt.Println("[Database]", strings.ReplaceAll(base.DbYaml(), "\n", " "))
+	fmt.Println("[Log]", strings.ReplaceAll(base.LogYaml(), "\n", " "))
 
 	base.InitLog()
 	core.InitWorkers()
