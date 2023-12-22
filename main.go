@@ -22,7 +22,7 @@ func main() {
 	base.InitLog()
 	core.InitWorkers()
 
-	fmt.Println("[Console]:", fmt.Sprintf("http://localhost:%v%s/web/index.html", base.Config().Server.Port, base.Config().Server.ContextPath))
+	fmt.Println("[Console]", fmt.Sprintf("http://localhost:%v%s/web/index.html", base.Config().Server.Port, base.Config().Server.ContextPath))
 
 	api.InitHttpRouter()
 }
