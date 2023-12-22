@@ -1,6 +1,7 @@
 package base
 
 import (
+	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -23,6 +24,14 @@ type ConfigModel struct {
 		MaxAge     int `yaml:"max-age"`
 		MaxBackups int `yaml:"max-backups"`
 	} `yaml:"log"`
+}
+
+func ConfigJson() string {
+	marshal, err := json.Marshal(config)
+	if err != nil {
+		return ""
+	}
+	return string(marshal)
 }
 
 func Config() ConfigModel {
