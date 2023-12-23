@@ -13,7 +13,7 @@ type TaskCommand struct {
 	RetryMax   int32             `json:"retryMax"`
 	RetryCycle int32             `json:"retryCycle"`
 	Url        string            `json:"url"`
-	BackupUrl  string            `json:"backupUrl"`
+	BackupHost string            `json:"backupHost"`
 	Method     string            `json:"method"`
 	Body       string            `json:"body"`
 	Header     map[string]string `json:"header"`
@@ -28,7 +28,7 @@ type TaskDTO struct {
 	RetryMax   int32             `json:"retryMax"`
 	RetryCycle int32             `json:"retryCycle"`
 	Url        string            `json:"url"`
-	BackupUrl  string            `json:"backupUrl"`
+	BackupHost string            `json:"backupHost"`
 	Method     string            `json:"method"`
 	Body       string            `json:"body"`
 	Header     map[string]string `json:"header"`
@@ -41,6 +41,7 @@ type RecordDTO struct {
 	Id         int64  `json:"id"`
 	TaskId     int64  `json:"taskId"`
 	ExecutedAt int64  `json:"executedAt"`
+	Host       string `json:"host"`
 	Result     string `json:"result"`
 	TimeCost   int32  `json:"timeCost"`
 	Code       int32  `json:"code"`

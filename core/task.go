@@ -50,9 +50,10 @@ func execute(cronStr string) {
 			if Handle(task, task.Url, 0) {
 				return
 			}
-			// 如果主url请求失败，且有备用url，使用备用url发起请求
-			if len(task.BackupUrl) > 0 {
-				Handle(task, task.BackupUrl, 1)
+			// TODO
+			// 如果主url请求失败，且有备用url，使用备用host发起请求
+			if len(task.BackupHost) > 0 {
+				Handle(task, task.BackupHost, 1)
 			}
 		}(task)
 	}

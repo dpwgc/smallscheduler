@@ -22,7 +22,7 @@ type Task struct {
 	RetryMax   int32     `gorm:"column:retry_max;not null;type:int(11);default:0;"`
 	RetryCycle int32     `gorm:"column:retry_cycle;not null;type:int(11);default:0;"`
 	Url        string    `gorm:"column:url;type:text;"`
-	BackupUrl  string    `gorm:"column:backup_url;type:text;"`
+	BackupHost string    `gorm:"column:backup_host;type:text;"`
 	Method     string    `gorm:"column:method;not null;type:varchar(6);default:'GET';"`
 	Body       string    `gorm:"column:body;type:text;"`
 	Header     string    `gorm:"column:header;type:text;"`
@@ -44,6 +44,7 @@ type Record struct {
 	Id         int64     `gorm:"column:id;not null;type:bigint(20);autoIncrement;primaryKey;"`
 	TaskId     int64     `gorm:"column:task_id;index:idx_task_id;not null;type:bigint(20);default:0;"`
 	ExecutedAt time.Time `gorm:"column:executed_at;index:idx_executed_at;not null;type:datetime;default:CURRENT_TIMESTAMP;"`
+	Host       string    `gorm:"column:host;not null;type:varchar(255);default:'';"`
 	Result     string    `gorm:"column:result;type:text;"`
 	Code       int32     `gorm:"column:code;not null;type:int(11);default:0;"`
 	TimeCost   int32     `gorm:"column:time_cost;not null;type:int(11);default:0;"`

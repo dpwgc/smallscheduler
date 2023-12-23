@@ -7,6 +7,7 @@ import (
 	"smallscheduler/base"
 	"smallscheduler/core"
 	"smallscheduler/model"
+	"strings"
 )
 
 const (
@@ -73,7 +74,7 @@ func (c *Controller) buildTaskDTO(task model.Task) model.TaskDTO {
 		RetryMax:   task.RetryMax,
 		RetryCycle: task.RetryCycle,
 		Url:        task.Url,
-		BackupUrl:  task.BackupUrl,
+		BackupHost: task.BackupHost,
 		Method:     task.Method,
 		Body:       task.Body,
 		Header:     headerObj,
@@ -103,6 +104,7 @@ func (c *Controller) buildRecordPageDTO(list []model.Record, total int64) model.
 			dtoList = append(dtoList, model.RecordDTO{
 				Id:         v.Id,
 				TaskId:     v.TaskId,
+				Host:       v.Host,
 				Result:     v.Result,
 				Code:       v.Code,
 				IsBackup:   v.IsBackup,
@@ -138,8 +140,8 @@ func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
 	if !isValidUrl(command.Url) {
 		return "url format is incorrect"
 	}
-	if len(command.BackupUrl) > 0 && !isValidUrl(command.BackupUrl) {
-		return "backup url format is incorrect"
+	if len(command.BackupHost) > 0 && len(strings.Split(command.BackupHost, ",")) == 0 {
+		return "backup host format is incorrect"
 	}
 	if len(command.Cron) == 0 {
 		return "cron is empty"
@@ -172,8 +174,8 @@ func (c *Controller) checkEditTaskCommand(command model.TaskCommand) string {
 	if len(command.Url) > 0 && !isValidUrl(command.Url) {
 		return "url format is incorrect"
 	}
-	if len(command.BackupUrl) > 0 && !isValidUrl(command.BackupUrl) {
-		return "backup url format is incorrect"
+	if len(command.BackupHost) > 0 && len(strings.Split(command.BackupHost, ",")) == 0 {
+		return "backup host format is incorrect"
 	}
 	if len(command.Method) > 0 && command.Method != "GET" && command.Method != "POST" && command.Method != "PUT" && command.Method != "PATCH" && command.Method != "DELETE" {
 		return "method is not match"
@@ -198,7 +200,7 @@ func (c *Controller) buildTask(id int64, command model.TaskCommand) model.Task {
 		RetryMax:   command.RetryMax,
 		RetryCycle: command.RetryCycle,
 		Url:        command.Url,
-		BackupUrl:  command.BackupUrl,
+		BackupHost: command.BackupHost,
 		Method:     command.Method,
 		Body:       command.Body,
 		Header:     headerJson,
