@@ -47,8 +47,8 @@ log:
   # 最多可以存在多少个日志文件
   max-backups: 1000
 ```
-### 2、运行 `main.go` 或使用 `go build main.go` 命令将程序编译成可执行文件后，再运行可执行文件
-### 3、访问网页控制台 `http://localhost:9088/v1/web/`
+### 2、运行 `main.go` 或使用 `go build main.go` 命令将程序编译成可执行程序后，再运行程序
+### 3、访问网页控制台 http://localhost:9088/v1/web/
 ### 4、在网页上配置与管理定时任务
 
 ***
