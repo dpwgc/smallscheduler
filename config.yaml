@@ -5,6 +5,7 @@ server:
 db:
   dsn: root:123456@tcp(127.0.0.1:3306)/small_scheduler?charset=utf8mb4&parseTime=True&loc=Local
 log:
+  path: ./logs/serve.log
   max-size: 1
   max-age: 7
   max-backups: 1000

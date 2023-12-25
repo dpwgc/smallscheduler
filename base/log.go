@@ -10,7 +10,7 @@ var Logger *slog.Logger
 
 func InitLog() {
 	r := &lumberjack.Logger{
-		Filename:   "./logs/serve.log",
+		Filename:   Config().Log.Path,
 		LocalTime:  true,
 		MaxSize:    Config().Log.MaxSize,
 		MaxAge:     Config().Log.MaxAge,

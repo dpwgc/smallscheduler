@@ -19,9 +19,10 @@ type ConfigModel struct {
 		Dsn string `yaml:"dsn"`
 	} `yaml:"db"`
 	Log struct {
-		MaxSize    int `yaml:"max-size"`
-		MaxAge     int `yaml:"max-age"`
-		MaxBackups int `yaml:"max-backups"`
+		Path       string `yaml:"path"`
+		MaxSize    int    `yaml:"max-size"`
+		MaxAge     int    `yaml:"max-age"`
+		MaxBackups int    `yaml:"max-backups"`
 	} `yaml:"log"`
 }
 

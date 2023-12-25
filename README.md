@@ -36,6 +36,8 @@ db:
   dsn: root:123456@tcp(127.0.0.1:3306)/small_scheduler?charset=utf8mb4&parseTime=True&loc=Local
 # 日志配置
 log:
+  # 日志文件存储地址
+  path: ./logs/serve.log
   # 单个日志文件最大容量（单位：mb）
   max-size: 1
   # 日志文件存活时间（单位：天）
