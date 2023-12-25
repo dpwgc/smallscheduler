@@ -113,6 +113,16 @@ func (r *Repository) AddTask(task model.Task) (int64, error) {
 
 func (r *Repository) EditTask(task model.Task) error {
 	task.UpdatedAt = time.Now()
+	if task.BackupUrl == "nil" {
+		err := r.DB.Table("task").Where("id = ?", task.Id).Updates(map[string]any{
+			"backup_url": "",
+			"updated_at": task.UpdatedAt,
+		}).Error
+		if err != nil {
+			return err
+		}
+		task.BackupUrl = ""
+	}
 	return r.DB.Table("task").Where("id = ?", task.Id).Updates(&task).Error
 }
 

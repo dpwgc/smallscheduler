@@ -129,6 +129,9 @@ func (c *Controller) checkPageQueryParams(pageIndex int, pageSize int) string {
 }
 
 func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
+	if len(command.Tag) == 0 {
+		command.Tag = "default"
+	}
 	if len(command.Name) == 0 {
 		return "name is empty"
 	}
@@ -172,7 +175,7 @@ func (c *Controller) checkEditTaskCommand(command model.TaskCommand) string {
 	if len(command.Url) > 0 && !isValidUrl(command.Url) {
 		return "url format is incorrect"
 	}
-	if len(command.BackupUrl) > 0 && !isValidUrl(command.BackupUrl) {
+	if len(command.BackupUrl) > 0 && command.BackupUrl != "nil" && !isValidUrl(command.BackupUrl) {
 		return "backup url format is incorrect"
 	}
 	if len(command.Method) > 0 && command.Method != "GET" && command.Method != "POST" && command.Method != "PUT" && command.Method != "PATCH" && command.Method != "DELETE" {
