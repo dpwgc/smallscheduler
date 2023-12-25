@@ -1,6 +1,6 @@
 # Small Scheduler
 
-## 一个基于 Go + MySQL + Cron 的分布式定时任务调度平台
+## 一个基于 Go + MySQL 的分布式定时任务调度平台
 
 ### 特点
 * 无状态分布式服务，只依赖 `MySQL` 数据库，部署流程简单，通过乐观锁控制并发，确保同一时刻同一任务只会被一个服务实例执行。
@@ -28,7 +28,7 @@ server:
   port: 9088
   # 服务路径前缀
   context-path: /v1
-  # 是否启用网页控制台
+  # 是否启用网页控制台（设为false后不会加载前端网页文件）
   console-enable: true
   # 任务执行时间锁，单位毫秒（代表500ms内不会重复执行同一个任务）
   executed-lock-time: 500
@@ -53,23 +53,49 @@ log:
 
 ***
 
-## 将项目源码打包成可执行文件
+## 将项目源码打包成可执行程序并运行
+
+### 打包
+
 ```
 go build main.go
 ```
 
+### Mac/Linux环境运行
+
+将可执行文件`main`与`config.yaml`配置文件、`web`前端文件夹置于同一目录下
+
+* 运行目录
+  * main
+  * config.yaml
+  * web
+    * css
+    * js
+    * index.html
+
+cd 到运行目录，执行命令
+
+```
+./main
+```
+
+### Windows环境运行
+
+将可执行文件`main.exe`与`config.yaml`配置文件、`web`前端文件夹置于同一目录下
+
+* 运行目录
+  * main.exe
+  * config.yaml
+  * web
+    * css
+    * js
+    * index.html
+
+双击`main.exe`运行程序
+
 ***
 
 ## 后台接口
-
-### 手动执行指定任务
-
-> `GET` http://localhost:9088/v1/execute/{taskId}
-
-#### 例：执行任务（id=1）-> http://localhost:9088/v1/execute/1
-
-* 正常情况：HTTP状态码返回`204`
-* 异常情况：HTTP状态码返回`400`
 
 ### 实例健康检查接口
 
