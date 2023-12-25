@@ -1,6 +1,7 @@
 server:
   port: 9088
   context-path: /v1
+  console-enable: true
   executed-lock-time: 500
 db:
   dsn: root:123456@tcp(127.0.0.1:3306)/small_scheduler?charset=utf8mb4&parseTime=True&loc=Local

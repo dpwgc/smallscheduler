@@ -13,6 +13,7 @@ type ConfigModel struct {
 	Server struct {
 		Port             int    `yaml:"port"`
 		ContextPath      string `yaml:"context-path"`
+		ConsoleEnable    bool   `yaml:"console-enable"`
 		ExecutedLockTime int64  `yaml:"executed-lock-time"`
 	} `yaml:"server"`
 	Db struct {

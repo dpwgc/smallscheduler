@@ -41,7 +41,9 @@ func InitHttpRouter() {
 	router.GET(fmt.Sprintf("%s%s", contextPath, "/health"), controller.Health)
 	router.GET(fmt.Sprintf("%s%s", contextPath, "/shutdown"), controller.Shutdown)
 
-	router.ServeFiles(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/web/*filepath"), http.Dir("web"))
+	if base.Config().Server.ConsoleEnable {
+		router.ServeFiles(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/web/*filepath"), http.Dir("web"))
+	}
 
 	port := base.Config().Server.Port
 	err = http.ListenAndServe(fmt.Sprintf(":%v", port), router)

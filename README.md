@@ -28,6 +28,8 @@ server:
   port: 9088
   # 服务路径前缀
   context-path: /v1
+  # 是否启用网页控制台
+  console-enable: true
   # 任务执行时间锁，单位毫秒（代表500ms内不会重复执行同一个任务）
   executed-lock-time: 500
 # 数据库配置
