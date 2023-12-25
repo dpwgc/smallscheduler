@@ -111,6 +111,10 @@ func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httproute
 	cmd.Name = strings.TrimSpace(cmd.Name)
 	cmd.Url = strings.TrimSpace(cmd.Url)
 
+	if len(cmd.Tag) == 0 {
+		cmd.Tag = "default"
+	}
+
 	tip := c.checkAddTaskCommand(cmd)
 	if len(tip) > 0 {
 		c.error(w, CommandParamErrorType, tip)

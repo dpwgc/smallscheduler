@@ -130,7 +130,7 @@ func (c *Controller) checkPageQueryParams(pageIndex int, pageSize int) string {
 
 func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
 	if len(command.Tag) == 0 {
-		command.Tag = "default"
+		return "tag is empty"
 	}
 	if len(command.Name) == 0 {
 		return "name is empty"
