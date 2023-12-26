@@ -198,12 +198,12 @@ func (c *Controller) ExecuteTask(w http.ResponseWriter, r *http.Request, p httpr
 	}
 	go func() {
 		// 使用主url发起请求
-		if core.Handle(task, task.Url, 0) {
+		if core.Execute(task, task.Url, 0) {
 			return
 		}
 		// 如果主url请求失败，且有备用url，使用备用url发起请求
 		if len(task.BackupUrl) > 0 {
-			core.Handle(task, task.BackupUrl, 1)
+			core.Execute(task, task.BackupUrl, 1)
 		}
 	}()
 	c.noContent(w)

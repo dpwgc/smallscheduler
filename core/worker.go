@@ -76,7 +76,7 @@ func loadWorker(cronStr string) {
 	worker := NewCronWorker()
 	//装配函数
 	_, err := worker.AddFunc(cronStr, func() {
-		execute(cronStr)
+		scheduled(cronStr)
 	})
 	if err != nil {
 		base.Logger.Error(err.Error())

@@ -14,8 +14,8 @@ import (
 
 var Shutdown = false
 
-// 批量执行任务
-func execute(cronStr string) {
+// 调度任务
+func scheduled(cronStr string) {
 	//获取该cron下的所有任务
 	taskList, err := service.ListStartedTaskByCron(cronStr)
 	if err != nil {
@@ -47,18 +47,19 @@ func execute(cronStr string) {
 				return
 			}
 			// 使用主url发起请求
-			if Handle(task, task.Url, 0) {
+			if Execute(task, task.Url, 0) {
 				return
 			}
 			// 如果主url请求失败，且有备用url，使用备用url发起请求
 			if len(task.BackupUrl) > 0 {
-				Handle(task, task.BackupUrl, 1)
+				Execute(task, task.BackupUrl, 1)
 			}
 		}(task)
 	}
 }
 
-func Handle(task model.Task, url string, isBackup int32) bool {
+// Execute 执行任务
+func Execute(task model.Task, url string, isBackup int32) bool {
 	for i := 0; i <= int(task.RetryMax); i++ {
 		record := model.Record{
 			TaskId:     task.Id,
@@ -66,7 +67,7 @@ func Handle(task model.Task, url string, isBackup int32) bool {
 			RetryCount: int32(i),
 			ExecutedAt: time.Now(),
 		}
-		code, timeCost, result := request(task.Method, url, task.Body, task.Header)
+		code, timeCost, result := httpSend(task.Method, url, task.Body, task.Header)
 		record.Result = result
 		record.Code = int32(code)
 		record.TimeCost = int32(timeCost)
@@ -84,7 +85,8 @@ func Handle(task model.Task, url string, isBackup int32) bool {
 	return false
 }
 
-func request(method, url, body, header string) (int, int64, string) {
+// 发送http请求
+func httpSend(method, url, body, header string) (int, int64, string) {
 	if method != "POST" && method != "GET" && method != "PUT" && method != "PATCH" && method != "DELETE" {
 		return -1, 0, "http method is not match"
 	}
