@@ -1,4 +1,4 @@
-package rdb
+package rds
 
 import (
 	"gorm.io/driver/mysql"

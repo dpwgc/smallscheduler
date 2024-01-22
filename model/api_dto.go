@@ -19,6 +19,15 @@ type TaskCommand struct {
 	Header     map[string]string `json:"header"`
 }
 
+type TaskQuery struct {
+	Status    int    `json:"status"`
+	Name      string `json:"name"`
+	Tag       string `json:"tag"`
+	Cron      string `json:"cron"`
+	PageIndex int    `json:"pageIndex"`
+	PageSize  int    `json:"pageSize"`
+}
+
 type TaskDTO struct {
 	Id         int64             `json:"id"`
 	Status     int32             `json:"status"`
@@ -37,6 +46,16 @@ type TaskDTO struct {
 	UpdatedAt  int64             `json:"updatedAt"`
 }
 
+type RecordQuery struct {
+	TaskId    int64  `json:"taskId"`
+	Code      int    `json:"code"`
+	StartTime string `json:"startTime"`
+	EndTime   string `json:"endTime"`
+	Sharding  string `json:"sharding"`
+	PageIndex int    `json:"pageIndex"`
+	PageSize  int    `json:"pageSize"`
+}
+
 type RecordDTO struct {
 	Id         int64  `json:"id"`
 	TaskId     int64  `json:"taskId"`
@@ -52,7 +71,7 @@ type CreatedDTO struct {
 	Id int64 `json:"id"`
 }
 
-type ErrorDTO struct {
-	Type int    `json:"type"`
-	Msg  string `json:"msg"`
+type CommonDTO struct {
+	Ok  bool   `json:"ok"`
+	Msg string `json:"msg"`
 }

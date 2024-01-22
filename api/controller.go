@@ -1,17 +1,13 @@
 package api
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"io"
-	"net/http"
+	"github.com/dpwgc/easierweb"
 	"os"
-	"smallscheduler/base"
 	"smallscheduler/core"
 	"smallscheduler/model"
 	"smallscheduler/storage"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -27,84 +23,52 @@ type Controller struct {
 	service *storage.Service
 }
 
-func (c *Controller) ListTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	values := r.URL.Query()
+func (c *Controller) ListTask(ctx *easierweb.Context, query model.TaskQuery) (*model.PageDTO, error) {
 
-	name := strings.TrimSpace(values.Get("name"))
-	tag := strings.TrimSpace(values.Get("tag"))
-	cron := strings.TrimSpace(values.Get("cron"))
-	status, _ := strconv.Atoi(values.Get("status"))
-	pageIndex, _ := strconv.Atoi(values.Get("pageIndex"))
-	pageSize, _ := strconv.Atoi(values.Get("pageSize"))
+	query.Name = strings.TrimSpace(query.Name)
+	query.Tag = strings.TrimSpace(query.Tag)
+	query.Cron = strings.TrimSpace(query.Cron)
 
-	tip := c.checkPageQueryParams(pageIndex, pageSize)
+	tip := c.checkPageQueryParams(query.PageIndex, query.PageSize)
 	if len(tip) > 0 {
-		c.error(w, QueryParamErrorType, tip)
-		return
+		return nil, errors.New(tip)
 	}
 
-	list, total, err := c.service.ListTask(name, tag, cron, status, pageIndex, pageSize)
+	list, total, err := c.service.ListTask(query.Name, query.Tag, query.Cron, query.Status, query.PageIndex, query.PageSize)
 	if err != nil {
-		c.error(w, ServiceErrorType, err.Error())
-		return
+		return nil, err
 	}
-	c.ok(w, c.buildTaskPageDTO(list, total))
+	return c.buildTaskPageDTO(list, total), nil
 }
 
-func (c *Controller) GetTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id, err := strconv.ParseInt(p.ByName("id"), 10, 64)
-	if err != nil {
-		c.error(w, PathParamErrorType, err.Error())
-		return
-	}
+func (c *Controller) GetTask(ctx *easierweb.Context) (*model.TaskDTO, error) {
+	id := ctx.Path.GetInt64("id")
 	task, err := c.service.GetTask(id)
 	if err != nil {
-		c.error(w, ServiceErrorType, err.Error())
-		return
+		return nil, err
 	}
-	if task.Id <= 0 {
-		c.error(w, ServiceErrorType, "task is empty")
-		return
-	}
-	c.ok(w, c.buildTaskDTO(task))
+	return c.buildTaskDTO(task), nil
 }
 
-func (c *Controller) ListTag(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	values := r.URL.Query()
-	status, _ := strconv.Atoi(values.Get("status"))
-
+func (c *Controller) ListTag(ctx *easierweb.Context) (*[]model.TagCount, error) {
+	status := ctx.Query.GetInt("status")
 	list, err := c.service.ListTagCount(status)
 	if err != nil {
-		c.error(w, ServiceErrorType, err.Error())
-		return
+		return nil, err
 	}
-	c.ok(w, list)
+	return &list, nil
 }
 
-func (c *Controller) ListCron(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	values := r.URL.Query()
-	status, _ := strconv.Atoi(values.Get("status"))
-
+func (c *Controller) ListCron(ctx *easierweb.Context) (*[]model.CronCount, error) {
+	status := ctx.Query.GetInt("status")
 	list, err := c.service.ListCronCount(status)
 	if err != nil {
-		c.error(w, ServiceErrorType, err.Error())
-		return
+		return nil, err
 	}
-	c.ok(w, list)
+	return &list, nil
 }
 
-func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	cmd := model.TaskCommand{}
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		c.error(w, IOErrorType, err.Error())
-		return
-	}
-	err = json.Unmarshal(body, &cmd)
-	if err != nil {
-		c.error(w, UnmarshalErrorType, err.Error())
-		return
-	}
+func (c *Controller) AddTask(ctx *easierweb.Context, cmd model.TaskCommand) (*model.CreatedDTO, error) {
 
 	cmd.Cron = strings.TrimSpace(cmd.Cron)
 	cmd.Tag = strings.TrimSpace(cmd.Tag)
@@ -117,37 +81,22 @@ func (c *Controller) AddTask(w http.ResponseWriter, r *http.Request, p httproute
 
 	tip := c.checkAddTaskCommand(cmd)
 	if len(tip) > 0 {
-		c.error(w, CommandParamErrorType, tip)
-		return
+		return nil, errors.New(tip)
 	}
 
 	id, err := c.service.AddTask(c.buildTask(0, cmd))
 	if err != nil {
-		c.error(w, ServiceErrorType, err.Error())
-		return
+		return nil, err
 	}
-	c.created(w, model.CreatedDTO{
+
+	return &model.CreatedDTO{
 		Id: id,
-	})
+	}, nil
 }
 
-func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id, err := strconv.ParseInt(p.ByName("id"), 10, 64)
-	if err != nil {
-		c.error(w, PathParamErrorType, err.Error())
-		return
-	}
-	cmd := model.TaskCommand{}
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		c.error(w, IOErrorType, err.Error())
-		return
-	}
-	err = json.Unmarshal(body, &cmd)
-	if err != nil {
-		c.error(w, UnmarshalErrorType, err.Error())
-		return
-	}
+func (c *Controller) EditTask(ctx *easierweb.Context, cmd model.TaskCommand) error {
+
+	id := ctx.Path.GetInt64("id")
 
 	cmd.Cron = strings.TrimSpace(cmd.Cron)
 	cmd.Tag = strings.TrimSpace(cmd.Tag)
@@ -156,45 +105,25 @@ func (c *Controller) EditTask(w http.ResponseWriter, r *http.Request, p httprout
 
 	tip := c.checkEditTaskCommand(cmd)
 	if len(tip) > 0 {
-		c.error(w, CommandParamErrorType, tip)
-		return
+		return errors.New(tip)
 	}
-	err = c.service.EditTask(c.buildTask(id, cmd))
-	if err != nil {
-		c.error(w, ServiceErrorType, err.Error())
-		return
-	}
-	c.noContent(w)
+	return c.service.EditTask(c.buildTask(id, cmd))
 }
 
-func (c *Controller) DeleteTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id, err := strconv.ParseInt(p.ByName("id"), 10, 64)
-	if err != nil {
-		c.error(w, PathParamErrorType, err.Error())
-		return
-	}
-	err = c.service.DeleteTask(id)
-	if err != nil {
-		c.error(w, ServiceErrorType, err.Error())
-		return
-	}
-	c.noContent(w)
+func (c *Controller) DeleteTask(ctx *easierweb.Context) error {
+
+	id := ctx.Path.GetInt64("id")
+
+	return c.service.DeleteTask(id)
 }
 
-func (c *Controller) ExecuteTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	id, err := strconv.ParseInt(p.ByName("id"), 10, 64)
-	if err != nil {
-		c.error(w, PathParamErrorType, err.Error())
-		return
-	}
+func (c *Controller) ExecuteTask(ctx *easierweb.Context) error {
+
+	id := ctx.Path.GetInt64("id")
+
 	task, err := c.service.GetTask(id)
 	if err != nil {
-		c.error(w, ServiceErrorType, err.Error())
-		return
-	}
-	if task.Id <= 0 {
-		c.error(w, ServiceErrorType, "task is empty")
-		return
+		return err
 	}
 	go func() {
 		// 使用主url发起请求
@@ -206,74 +135,61 @@ func (c *Controller) ExecuteTask(w http.ResponseWriter, r *http.Request, p httpr
 			core.Execute(task, task.BackupUrl, 1)
 		}
 	}()
-	c.noContent(w)
+	return nil
 }
 
-func (c *Controller) ListRecord(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	values := r.URL.Query()
+func (c *Controller) ListRecord(ctx *easierweb.Context, query model.RecordQuery) (*model.PageDTO, error) {
 
-	taskId, err := strconv.ParseInt(values.Get("taskId"), 10, 64)
-	if err != nil {
-		c.error(w, QueryParamErrorType, err.Error())
-		return
-	}
-	startTime := strings.TrimSpace(values.Get("startTime"))
-	endTime := strings.TrimSpace(values.Get("endTime"))
-	sharding := strings.TrimSpace(values.Get("sharding"))
-	code, _ := strconv.Atoi(values.Get("code"))
-	pageIndex, _ := strconv.Atoi(values.Get("pageIndex"))
-	pageSize, _ := strconv.Atoi(values.Get("pageSize"))
+	query.StartTime = strings.TrimSpace(query.StartTime)
+	query.EndTime = strings.TrimSpace(query.EndTime)
+	query.Sharding = strings.TrimSpace(query.Sharding)
 
-	if len(sharding) < 7 {
+	if len(query.Sharding) < 7 {
 		dateStr := time.Now().Format("2006-01-02")
 		dateArr := strings.Split(dateStr, "-")
-		sharding = fmt.Sprintf("%s_%s", dateArr[0], dateArr[1])
+		query.Sharding = fmt.Sprintf("%s_%s", dateArr[0], dateArr[1])
 	}
 
-	tip := c.checkPageQueryParams(pageIndex, pageSize)
+	tip := c.checkPageQueryParams(query.PageIndex, query.PageSize)
 	if len(tip) > 0 {
-		c.error(w, QueryParamErrorType, tip)
-		return
+		return nil, errors.New(tip)
 	}
 
-	list, total, err := c.service.ListRecord(sharding, taskId, code, startTime, endTime, pageIndex, pageSize)
+	list, total, err := c.service.ListRecord(query.Sharding, query.TaskId, query.Code, query.StartTime, query.EndTime, query.PageIndex, query.PageSize)
 	if err != nil {
-		c.error(w, ServiceErrorType, err.Error())
-		return
+		return nil, err
 	}
-	c.ok(w, c.buildRecordPageDTO(list, total))
+	return c.buildRecordPageDTO(list, total), nil
 }
 
-func (c *Controller) Health(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func (c *Controller) Health(ctx *easierweb.Context) (*model.CommonDTO, error) {
 	if core.Shutdown {
-		w.WriteHeader(ErrorCode)
-	} else {
-		w.WriteHeader(OkCode)
+		return nil, errors.New("closed")
 	}
-	_, err := w.Write([]byte("1"))
-	if err != nil {
-		base.Logger.Error(err.Error())
-	}
+	return &model.CommonDTO{
+		Ok:  true,
+		Msg: "running",
+	}, nil
 }
 
-func (c *Controller) Shutdown(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	values := r.URL.Query()
-	wait, _ := strconv.Atoi(values.Get("wait"))
-	if !core.Shutdown && wait > 0 {
-		if strings.Contains(r.Host, "localhost") || strings.Contains(r.URL.Host, "127.0.0.1") || strings.Contains(r.URL.Host, "0.0.0.0") {
-			core.Shutdown = true
-			base.Logger.Warn(fmt.Sprintf("shutdown after %v seconds", wait))
-			go func() {
-				time.Sleep(time.Duration(wait) * time.Second)
-				os.Exit(1)
-			}()
-		} else {
-			base.Logger.Warn("only local shutdown requests are accepted")
-		}
+func (c *Controller) Shutdown(ctx *easierweb.Context) (*model.CommonDTO, error) {
+	wait := ctx.Query.GetInt("wait")
+	if wait <= 0 {
+		return nil, errors.New("wait must be greater than 0")
 	}
-	w.WriteHeader(OkCode)
-	_, err := w.Write([]byte("1"))
-	if err != nil {
-		base.Logger.Error(err.Error())
+	if core.Shutdown {
+		return nil, errors.New("shutdown command has been triggered")
 	}
+	if strings.Contains(ctx.Host(), "localhost") || strings.Contains(ctx.Host(), "127.0.0.1") || strings.Contains(ctx.Host(), "0.0.0.0") {
+		core.Shutdown = true
+		go func() {
+			time.Sleep(time.Duration(wait) * time.Second)
+			os.Exit(1)
+		}()
+		return &model.CommonDTO{
+			Ok:  true,
+			Msg: fmt.Sprintf("shutdown after %v seconds", wait),
+		}, nil
+	}
+	return nil, errors.New("only local shutdown requests are accepted")
 }

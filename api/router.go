@@ -1,12 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
+	"github.com/dpwgc/easierweb"
 	"log/slog"
 	"net/http"
 	"smallscheduler/base"
-	"smallscheduler/core"
+	"smallscheduler/model"
 )
 
 // InitHttpRouter HTTP路由配置
@@ -18,56 +19,116 @@ func InitHttpRouter() {
 		return
 	}
 
-	base.Logger.Info("start http router")
+	router := easierweb.New(easierweb.RouterOptions{
+		ErrorHandle:    errorHandle(),
+		ResponseHandle: responseHandle(),
+		Logger:         base.Logger,
+		RootPath:       base.Config().Server.ContextPath,
+	}).Use(logMiddleware())
 
-	router := httprouter.New()
+	router.EasyGET("/tasks", controller.ListTask)
+	router.EasyGET("/task/:id", controller.GetTask)
 
-	contextPath := base.Config().Server.ContextPath
+	router.EasyGET("/tags", controller.ListTag)
+	router.EasyGET("/crons", controller.ListCron)
 
-	router.GET(fmt.Sprintf("%s%s", contextPath, "/tasks"), middleware(controller.ListTask))
-	router.GET(fmt.Sprintf("%s%s", contextPath, "/task/:id"), middleware(controller.GetTask))
+	router.EasyPOST("/task", controller.AddTask)
+	router.EasyPUT("/task/:id", controller.EditTask)
+	router.EasyDELETE("/task/:id", controller.DeleteTask)
 
-	router.GET(fmt.Sprintf("%s%s", contextPath, "/tags"), middleware(controller.ListTag))
-	router.GET(fmt.Sprintf("%s%s", contextPath, "/crons"), middleware(controller.ListCron))
+	router.EasyGET("/execute/:id", controller.ExecuteTask)
 
-	router.POST(fmt.Sprintf("%s%s", contextPath, "/task"), middleware(controller.AddTask))
-	router.PUT(fmt.Sprintf("%s%s", contextPath, "/task/:id"), middleware(controller.EditTask))
-	router.DELETE(fmt.Sprintf("%s%s", contextPath, "/task/:id"), middleware(controller.DeleteTask))
+	router.EasyGET("/records", controller.ListRecord)
 
-	router.GET(fmt.Sprintf("%s%s", contextPath, "/execute/:id"), middleware(controller.ExecuteTask))
-
-	router.GET(fmt.Sprintf("%s%s", contextPath, "/records"), middleware(controller.ListRecord))
-
-	router.GET(fmt.Sprintf("%s%s", contextPath, "/health"), controller.Health)
-	router.GET(fmt.Sprintf("%s%s", contextPath, "/shutdown"), controller.Shutdown)
+	router.EasyGET("/health", controller.Health)
+	router.EasyGET("/shutdown", controller.Shutdown)
 
 	if base.Config().Server.ConsoleEnable {
-		router.ServeFiles(fmt.Sprintf("%s%s", base.Config().Server.ContextPath, "/web/*filepath"), http.Dir("web"))
+		router.Static("/web/*filepath", "web")
 	}
 
-	port := base.Config().Server.Port
-	err = http.ListenAndServe(fmt.Sprintf(":%v", port), router)
+	err = router.Run(fmt.Sprintf(":%v", base.Config().Server.Port))
 	if err != nil {
 		base.Logger.Error(err.Error())
-		panic(err)
 		return
 	}
 }
 
-// 中间件
-func middleware(h ...httprouter.Handle) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		if core.Shutdown {
-			w.WriteHeader(ErrorCode)
-			_, err := w.Write([]byte(""))
-			if err != nil {
-				base.Logger.Error(err.Error())
+func errorHandle() easierweb.ErrorHandle {
+	return func(ctx *easierweb.Context, err any) {
+		ctx.WriteJSON(http.StatusBadRequest, model.CommonDTO{
+			Ok:  false,
+			Msg: fmt.Sprintf("unexpected error: %s", err),
+		})
+	}
+}
+
+func responseHandle() easierweb.ResponseHandle {
+	return func(ctx *easierweb.Context, result any, err error) {
+		if err != nil {
+			ctx.WriteJSON(http.StatusBadRequest, model.CommonDTO{
+				Ok:  false,
+				Msg: err.Error(),
+			})
+		} else {
+			if ctx.Method() == "POST" {
+				ctx.WriteJSON(http.StatusCreated, result)
+			} else {
+				ctx.WriteJSON(http.StatusOK, result)
 			}
-			return
 		}
-		base.Logger.Info(fmt.Sprintf("[%s]%s", r.Method, r.RequestURI), slog.String("remoteAddr", r.RemoteAddr), slog.Int64("contentLength", r.ContentLength))
-		for _, handler := range h {
-			handler(w, r, p)
+	}
+}
+
+func logMiddleware() easierweb.Handle {
+	return func(ctx *easierweb.Context) {
+
+		ctx.Next()
+
+		path := ""
+		query := ""
+		body := ""
+		result := ""
+
+		if len(ctx.Path) > 0 {
+			marshal, err := json.Marshal(ctx.Path)
+			if err != nil {
+				path = err.Error()
+			} else {
+				path = string(marshal)
+			}
 		}
+		if len(ctx.Query) > 0 {
+			marshal, err := json.Marshal(ctx.Query)
+			if err != nil {
+				query = err.Error()
+			} else {
+				query = string(marshal)
+			}
+		}
+		sizeLimit := 1024 * 1024
+		if len(ctx.Body) > 0 {
+			if len(ctx.Body) > sizeLimit {
+				body = "body is too large"
+			} else {
+				body = string(ctx.Body)
+			}
+		}
+		if len(ctx.Result) > 0 {
+			if len(ctx.Result) > sizeLimit {
+				result = "result is too large"
+			} else {
+				result = string(ctx.Result)
+			}
+		}
+
+		ctx.Logger.Info(ctx.Proto(), slog.String("method", ctx.Request.Method),
+			slog.String("url", ctx.Request.URL.String()),
+			slog.String("client", ctx.Request.RemoteAddr),
+			slog.String("path", path),
+			slog.String("query", query),
+			slog.String("body", body),
+			slog.Int("code", ctx.Code),
+			slog.String("result", result))
 	}
 }

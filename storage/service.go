@@ -2,18 +2,18 @@ package storage
 
 import (
 	"smallscheduler/model"
-	"smallscheduler/storage/rdb"
+	"smallscheduler/storage/rds"
 )
 
 func NewService() (*Service, error) {
-	repository, err := rdb.NewRepository()
+	repository, err := rds.NewRepository()
 	return &Service{
 		repository: repository,
 	}, err
 }
 
 type Service struct {
-	repository *rdb.Repository
+	repository *rds.Repository
 }
 
 func (s *Service) ListTask(name string, tag string, cron string, status int, pageIndex int, pageSize int) ([]model.Task, int64, error) {

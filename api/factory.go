@@ -2,69 +2,17 @@ package api
 
 import (
 	"encoding/json"
-	"net/http"
 	"net/url"
-	"smallscheduler/base"
 	"smallscheduler/core"
 	"smallscheduler/model"
 )
 
-const (
-	OkCode                = 200
-	CreatedCode           = 201
-	NoContentCode         = 204
-	ErrorCode             = 400
-	IOErrorType           = 10
-	UnmarshalErrorType    = 11
-	PathParamErrorType    = 20
-	QueryParamErrorType   = 21
-	CommandParamErrorType = 22
-	ServiceErrorType      = 30
-)
-
-func (c *Controller) ok(w http.ResponseWriter, obj any) {
-	c.success(w, OkCode, obj)
-}
-
-func (c *Controller) created(w http.ResponseWriter, obj any) {
-	c.success(w, CreatedCode, obj)
-}
-
-func (c *Controller) noContent(w http.ResponseWriter) {
-	c.success(w, NoContentCode, nil)
-}
-
-func (c *Controller) success(w http.ResponseWriter, code int, obj any) {
-	resultBytes := []byte("")
-	if obj != nil {
-		resultBytes, _ = json.Marshal(obj)
-	}
-	c.write(w, code, resultBytes)
-}
-
-func (c *Controller) error(w http.ResponseWriter, eType int, msg string) {
-	resultBytes, _ := json.Marshal(model.ErrorDTO{
-		Type: eType,
-		Msg:  msg,
-	})
-	c.write(w, ErrorCode, resultBytes)
-}
-
-func (c *Controller) write(w http.ResponseWriter, code int, body []byte) {
-	w.WriteHeader(code)
-	_, err := w.Write(body)
-	if err != nil {
-		base.Logger.Error(err.Error())
-		return
-	}
-}
-
-func (c *Controller) buildTaskDTO(task model.Task) model.TaskDTO {
+func (c *Controller) buildTaskDTO(task model.Task) *model.TaskDTO {
 	headerObj := map[string]string{}
 	if len(task.Header) > 0 {
 		_ = json.Unmarshal([]byte(task.Header), &headerObj)
 	}
-	return model.TaskDTO{
+	return &model.TaskDTO{
 		Id:         task.Id,
 		Status:     task.Status,
 		Name:       task.Name,
@@ -83,20 +31,20 @@ func (c *Controller) buildTaskDTO(task model.Task) model.TaskDTO {
 	}
 }
 
-func (c *Controller) buildTaskPageDTO(list []model.Task, total int64) model.PageDTO {
+func (c *Controller) buildTaskPageDTO(list []model.Task, total int64) *model.PageDTO {
 	var dtoList []model.TaskDTO
 	if len(list) > 0 {
 		for _, v := range list {
-			dtoList = append(dtoList, c.buildTaskDTO(v))
+			dtoList = append(dtoList, *c.buildTaskDTO(v))
 		}
 	}
-	return model.PageDTO{
+	return &model.PageDTO{
 		Total: total,
 		List:  dtoList,
 	}
 }
 
-func (c *Controller) buildRecordPageDTO(list []model.Record, total int64) model.PageDTO {
+func (c *Controller) buildRecordPageDTO(list []model.Record, total int64) *model.PageDTO {
 	var dtoList []model.RecordDTO
 	if len(list) > 0 {
 		for _, v := range list {
@@ -112,7 +60,7 @@ func (c *Controller) buildRecordPageDTO(list []model.Record, total int64) model.
 			})
 		}
 	}
-	return model.PageDTO{
+	return &model.PageDTO{
 		Total: total,
 		List:  dtoList,
 	}

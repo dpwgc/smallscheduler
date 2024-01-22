@@ -13,7 +13,6 @@
 ![index](./image/index.png)
 ![task](./image/task.png)
 ![record](./image/record.png)
-![process](./image/process.png)
 
 ***
 
