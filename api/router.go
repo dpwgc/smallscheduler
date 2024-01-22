@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/dpwgc/easierweb"
@@ -19,6 +20,8 @@ func InitHttpRouter() {
 		return
 	}
 
+	base.Logger.Info("start http server")
+
 	router := easierweb.New(easierweb.RouterOptions{
 		ErrorHandle:    errorHandle(),
 		ResponseHandle: responseHandle(),
@@ -26,31 +29,44 @@ func InitHttpRouter() {
 		RootPath:       base.Config().Server.ContextPath,
 	}).Use(logMiddleware())
 
-	router.EasyGET("/tasks", controller.ListTask)
-	router.EasyGET("/task/:id", controller.GetTask)
+	var adminGroup *easierweb.Group
+	if base.Config().Server.Auth {
+		adminGroup = router.Group("", basicAuthMiddleware())
+	} else {
+		adminGroup = router.Group("")
+	}
 
-	router.EasyGET("/tags", controller.ListTag)
-	router.EasyGET("/crons", controller.ListCron)
+	adminGroup.EasyGET("/tasks", controller.ListTask)
+	adminGroup.EasyGET("/task/:id", controller.GetTask)
 
-	router.EasyPOST("/task", controller.AddTask)
-	router.EasyPUT("/task/:id", controller.EditTask)
-	router.EasyDELETE("/task/:id", controller.DeleteTask)
+	adminGroup.EasyGET("/tags", controller.ListTag)
+	adminGroup.EasyGET("/crons", controller.ListCron)
 
-	router.EasyGET("/execute/:id", controller.ExecuteTask)
+	adminGroup.EasyPOST("/task", controller.AddTask)
+	adminGroup.EasyPUT("/task/:id", controller.EditTask)
+	adminGroup.EasyDELETE("/task/:id", controller.DeleteTask)
 
-	router.EasyGET("/records", controller.ListRecord)
+	adminGroup.EasyGET("/execute/:id", controller.ExecuteTask)
 
-	router.EasyGET("/health", controller.Health)
-	router.EasyGET("/shutdown", controller.Shutdown)
+	adminGroup.EasyGET("/records", controller.ListRecord)
+
+	serverGroup := router.Group("")
+	serverGroup.EasyGET("/health", controller.Health)
+	serverGroup.EasyGET("/shutdown", controller.Shutdown)
 
 	if base.Config().Server.ConsoleEnable {
 		router.Static("/web/*filepath", "web")
 	}
 
-	err = router.Run(fmt.Sprintf(":%v", base.Config().Server.Port))
+	host := fmt.Sprintf("%s:%v", base.Config().Server.Addr, base.Config().Server.Port)
+	if base.Config().Server.TLS {
+		err = router.RunTLS(host, base.Config().Server.CertFile, base.Config().Server.KeyFile, &tls.Config{})
+	} else {
+		err = router.Run(host)
+	}
+
 	if err != nil {
 		base.Logger.Error(err.Error())
-		return
 	}
 }
 
@@ -84,6 +100,10 @@ func logMiddleware() easierweb.Handle {
 	return func(ctx *easierweb.Context) {
 
 		ctx.Next()
+
+		if ctx.Proto() == "/health" {
+			return
+		}
 
 		path := ""
 		query := ""
@@ -130,5 +150,27 @@ func logMiddleware() easierweb.Handle {
 			slog.String("body", body),
 			slog.Int("code", ctx.Code),
 			slog.String("result", result))
+	}
+}
+
+func basicAuthMiddleware() easierweb.Handle {
+	return func(ctx *easierweb.Context) {
+		user, pass, ok := ctx.Request.BasicAuth()
+		if !ok {
+			ctx.WriteJSON(http.StatusUnauthorized, model.CommonDTO{
+				Ok:  false,
+				Msg: "basic authentication failed",
+			})
+			return
+		}
+		if base.Config().Server.Username != user || base.Config().Server.Password != pass {
+			ctx.WriteJSON(http.StatusUnauthorized, model.CommonDTO{
+				Ok:  false,
+				Msg: "username or password error",
+			})
+			return
+		}
+		// 真正需要处理的业务
+		ctx.Next()
 	}
 }

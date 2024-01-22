@@ -51,7 +51,7 @@ type RecordQuery struct {
 	Code      int    `json:"code"`
 	StartTime string `json:"startTime"`
 	EndTime   string `json:"endTime"`
-	Sharding  string `json:"sharding"`
+	Shard     string `json:"shard"`
 	PageIndex int    `json:"pageIndex"`
 	PageSize  int    `json:"pageSize"`
 }

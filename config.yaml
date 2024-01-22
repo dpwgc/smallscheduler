@@ -1,5 +1,7 @@
 # 服务配置
 server:
+  # 服务地址
+  addr: 0.0.0.0
   # 服务端口号
   port: 9088
   # 服务路径前缀
@@ -8,14 +10,26 @@ server:
   console-enable: true
   # 任务执行时间锁，单位毫秒（代表500ms内不会重复执行同一个任务）
   executed-lock-time: 500
+  # 是否使用安全验证
+  auth: true
+  # 登录账号
+  username: admin
+  # 登录密码
+  password: 123456
+  # 是否开启tls
+  tls: false
+  # cert文件路径
+  cert-file: cert.pem
+  # key文件路径
+  key-file: private.key
 # 数据库配置
 db:
   # 数据库链接（指定一个新建的MySQL数据库即可，会自动建表）
   dsn: root:123456@tcp(127.0.0.1:3306)/small_scheduler?charset=utf8mb4&parseTime=True&loc=Local
 # 日志配置
 log:
-  # 日志文件存储地址
-  path: ./logs/serve.log
+  # 日志文件存储目录
+  path: ./logs
   # 单个日志文件最大容量（单位：mb）
   max-size: 1
   # 日志文件存活时间（单位：天）

@@ -142,12 +142,12 @@ func (c *Controller) ListRecord(ctx *easierweb.Context, query model.RecordQuery)
 
 	query.StartTime = strings.TrimSpace(query.StartTime)
 	query.EndTime = strings.TrimSpace(query.EndTime)
-	query.Sharding = strings.TrimSpace(query.Sharding)
+	query.Shard = strings.TrimSpace(query.Shard)
 
-	if len(query.Sharding) < 7 {
+	if len(query.Shard) < 7 {
 		dateStr := time.Now().Format("2006-01-02")
 		dateArr := strings.Split(dateStr, "-")
-		query.Sharding = fmt.Sprintf("%s_%s", dateArr[0], dateArr[1])
+		query.Shard = fmt.Sprintf("%s_%s", dateArr[0], dateArr[1])
 	}
 
 	tip := c.checkPageQueryParams(query.PageIndex, query.PageSize)
@@ -155,7 +155,7 @@ func (c *Controller) ListRecord(ctx *easierweb.Context, query model.RecordQuery)
 		return nil, errors.New(tip)
 	}
 
-	list, total, err := c.service.ListRecord(query.Sharding, query.TaskId, query.Code, query.StartTime, query.EndTime, query.PageIndex, query.PageSize)
+	list, total, err := c.service.ListRecord(query.Shard, query.TaskId, query.Code, query.StartTime, query.EndTime, query.PageIndex, query.PageSize)
 	if err != nil {
 		return nil, err
 	}

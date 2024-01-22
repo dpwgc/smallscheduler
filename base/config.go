@@ -11,10 +11,17 @@ var config ConfigModel
 
 type ConfigModel struct {
 	Server struct {
+		Addr             string `yaml:"addr"`
 		Port             int    `yaml:"port"`
 		ContextPath      string `yaml:"context-path"`
 		ConsoleEnable    bool   `yaml:"console-enable"`
 		ExecutedLockTime int64  `yaml:"executed-lock-time"`
+		Auth             bool   `yaml:"auth"`
+		Username         string `yaml:"username"`
+		Password         string `yaml:"password"`
+		TLS              bool   `yaml:"tls"`
+		CertFile         string `yaml:"cert-file"`
+		KeyFile          string `yaml:"key-file"`
 	} `yaml:"server"`
 	Db struct {
 		Dsn string `yaml:"dsn"`

@@ -10,7 +10,7 @@ var Logger *slog.Logger
 
 func InitLog() {
 	r := &lumberjack.Logger{
-		Filename:   Config().Log.Path,
+		Filename:   Config().Log.Path + "/small-scheduler.log",
 		LocalTime:  true,
 		MaxSize:    Config().Log.MaxSize,
 		MaxAge:     Config().Log.MaxAge,

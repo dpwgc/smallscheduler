@@ -138,10 +138,10 @@ func (r *Repository) AddRecord(record model.Record) error {
 	return r.DB.Model(&model.Record{}).Create(&record).Error
 }
 
-func (r *Repository) ListRecord(sharding string, taskId int64, code int, startTime string, endTime string, pageIndex int, pageSize int) ([]model.Record, int64, error) {
+func (r *Repository) ListRecord(shard string, taskId int64, code int, startTime string, endTime string, pageIndex int, pageSize int) ([]model.Record, int64, error) {
 	var recordList []model.Record
 	var total int64
-	sql := r.DB.Table(fmt.Sprintf("record_%s", sharding)).Where("task_id = ?", taskId)
+	sql := r.DB.Table(fmt.Sprintf("record_%s", shard)).Where("task_id = ?", taskId)
 	if code != 0 {
 		sql.Where("code = ?", code)
 	}
