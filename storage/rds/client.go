@@ -13,6 +13,8 @@ func newClient() (*gorm.DB, error) {
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true, // 使用单数表名
 		},
+		PrepareStmt:            true,
+		SkipDefaultTransaction: true,
 	})
 	if err != nil {
 		return nil, err

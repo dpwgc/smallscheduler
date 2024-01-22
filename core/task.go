@@ -15,17 +15,17 @@ import (
 var Shutdown = false
 
 // 调度任务
-func scheduled(cronStr string) {
+func scheduled(spec string) {
 	//获取该cron下的所有任务
-	taskList, err := service.ListStartedTaskByCron(cronStr)
+	taskList, err := service.ListStartedTaskBySpec(spec)
 	if err != nil {
 		base.Logger.Error(err.Error())
 	}
 	//如果任务列表长度为0，则删除该工作者
 	if len(taskList) == 0 {
-		worker, _ := workerFactory.Load(cronStr)
+		worker, _ := workerFactory.Load(spec)
 		worker.(*cron.Cron).Stop()
-		workerFactory.Delete(cronStr)
+		workerFactory.Delete(spec)
 		worker = nil
 		base.Logger.Info("a invalid worker is deleted")
 	}

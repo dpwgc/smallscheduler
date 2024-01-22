@@ -56,27 +56,27 @@ func InitWorkers() {
 // 加载工作者列表
 func loadWorkers() {
 	// 获取当前系统中的所有任务的cron表达式
-	cronList, err := service.ListStartedCron()
+	specList, err := service.ListStartedSpec()
 	if err != nil {
 		base.Logger.Error(err.Error())
 	}
 	//为每个cron表达式生成一个工作者
-	for _, cronStr := range cronList {
-		loadWorker(cronStr)
+	for _, spec := range specList {
+		loadWorker(spec)
 	}
 }
 
-func loadWorker(cronStr string) {
+func loadWorker(spec string) {
 	//判断是否已经存在工作者
-	oldWorker, _ := workerFactory.Load(cronStr)
+	oldWorker, _ := workerFactory.Load(spec)
 	if oldWorker != nil {
 		return
 	}
 	//创建工作者（协程定时任务）
 	worker := NewCronWorker()
 	//装配函数
-	_, err := worker.AddFunc(cronStr, func() {
-		scheduled(cronStr)
+	_, err := worker.AddFunc(spec, func() {
+		scheduled(spec)
 	})
 	if err != nil {
 		base.Logger.Error(err.Error())
@@ -85,9 +85,9 @@ func loadWorker(cronStr string) {
 	//启动工作者
 	worker.Start()
 	//将该工作者装入工作者列表
-	workerFactory.Store(cronStr, worker)
+	workerFactory.Store(spec, worker)
 
-	base.Logger.Info("a new worker is created")
+	base.Logger.Info("a new worker has been created")
 }
 
 // NewCronWorker 返回一个支持至 秒 级别的 cron

@@ -27,14 +27,14 @@ func (c *Controller) ListTask(ctx *easierweb.Context, query model.TaskQuery) (*m
 
 	query.Name = strings.TrimSpace(query.Name)
 	query.Tag = strings.TrimSpace(query.Tag)
-	query.Cron = strings.TrimSpace(query.Cron)
+	query.Spec = strings.TrimSpace(query.Spec)
 
 	tip := c.checkPageQueryParams(query.PageIndex, query.PageSize)
 	if len(tip) > 0 {
 		return nil, errors.New(tip)
 	}
 
-	list, total, err := c.service.ListTask(query.Name, query.Tag, query.Cron, query.Status, query.PageIndex, query.PageSize)
+	list, total, err := c.service.ListTask(query.Name, query.Tag, query.Spec, query.Status, query.PageIndex, query.PageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -59,9 +59,9 @@ func (c *Controller) ListTag(ctx *easierweb.Context) (*[]model.TagCount, error) 
 	return &list, nil
 }
 
-func (c *Controller) ListCron(ctx *easierweb.Context) (*[]model.CronCount, error) {
+func (c *Controller) ListSpec(ctx *easierweb.Context) (*[]model.SpecCount, error) {
 	status := ctx.Query.GetInt("status")
-	list, err := c.service.ListCronCount(status)
+	list, err := c.service.ListSpecCount(status)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (c *Controller) ListCron(ctx *easierweb.Context) (*[]model.CronCount, error
 
 func (c *Controller) AddTask(ctx *easierweb.Context, cmd model.TaskCommand) (*model.CreatedDTO, error) {
 
-	cmd.Cron = strings.TrimSpace(cmd.Cron)
+	cmd.Spec = strings.TrimSpace(cmd.Spec)
 	cmd.Tag = strings.TrimSpace(cmd.Tag)
 	cmd.Name = strings.TrimSpace(cmd.Name)
 	cmd.Url = strings.TrimSpace(cmd.Url)
@@ -98,7 +98,7 @@ func (c *Controller) EditTask(ctx *easierweb.Context, cmd model.TaskCommand) err
 
 	id := ctx.Path.GetInt64("id")
 
-	cmd.Cron = strings.TrimSpace(cmd.Cron)
+	cmd.Spec = strings.TrimSpace(cmd.Spec)
 	cmd.Tag = strings.TrimSpace(cmd.Tag)
 	cmd.Name = strings.TrimSpace(cmd.Name)
 	cmd.Url = strings.TrimSpace(cmd.Url)

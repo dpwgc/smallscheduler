@@ -16,8 +16,8 @@ type Service struct {
 	repository *rds.Repository
 }
 
-func (s *Service) ListTask(name string, tag string, cron string, status int, pageIndex int, pageSize int) ([]model.Task, int64, error) {
-	return s.repository.ListTask(name, tag, cron, status, pageIndex, pageSize)
+func (s *Service) ListTask(name string, tag string, spec string, status int, pageIndex int, pageSize int) ([]model.Task, int64, error) {
+	return s.repository.ListTask(name, tag, spec, status, pageIndex, pageSize)
 }
 
 func (s *Service) GetTask(id int64) (model.Task, error) {
@@ -28,16 +28,16 @@ func (s *Service) ListTagCount(status int) ([]model.TagCount, error) {
 	return s.repository.ListTagCount(status)
 }
 
-func (s *Service) ListCronCount(status int) ([]model.CronCount, error) {
-	return s.repository.ListCronCount(status)
+func (s *Service) ListSpecCount(status int) ([]model.SpecCount, error) {
+	return s.repository.ListSpecCount(status)
 }
 
-func (s *Service) ListStartedTaskByCron(cron string) ([]model.Task, error) {
-	return s.repository.ListStartedTaskByCron(cron)
+func (s *Service) ListStartedTaskBySpec(spec string) ([]model.Task, error) {
+	return s.repository.ListStartedTaskBySpec(spec)
 }
 
-func (s *Service) ListStartedCron() ([]string, error) {
-	return s.repository.ListStartedCron()
+func (s *Service) ListStartedSpec() ([]string, error) {
+	return s.repository.ListStartedSpec()
 }
 
 func (s *Service) TryExecuteTask(task model.Task) (int64, error) {

@@ -19,7 +19,7 @@ type Repository struct {
 	DB *gorm.DB
 }
 
-func (r *Repository) ListTask(name string, tag string, cron string, status int, pageIndex int, pageSize int) ([]model.Task, int64, error) {
+func (r *Repository) ListTask(name string, tag string, spec string, status int, pageIndex int, pageSize int) ([]model.Task, int64, error) {
 	var taskList []model.Task
 	var total int64
 	sql := r.DB.Model(&model.Task{})
@@ -32,8 +32,8 @@ func (r *Repository) ListTask(name string, tag string, cron string, status int, 
 	if len(tag) > 0 {
 		sql = sql.Where("tag = ?", tag)
 	}
-	if len(cron) > 0 {
-		sql = sql.Where("cron = ?", cron)
+	if len(spec) > 0 {
+		sql = sql.Where("spec = ?", spec)
 	}
 	sql.Count(&total)
 	sql = sql.Order("id desc").Limit(pageSize).Offset((pageIndex - 1) * pageSize)
@@ -63,41 +63,41 @@ func (r *Repository) ListTagCount(status int) ([]model.TagCount, error) {
 	return tagCountList, err
 }
 
-func (r *Repository) ListCronCount(status int) ([]model.CronCount, error) {
-	var cronCountList []model.CronCount
-	sql := r.DB.Table("task").Select("cron", "count(*) as number")
+func (r *Repository) ListSpecCount(status int) ([]model.SpecCount, error) {
+	var specCountList []model.SpecCount
+	sql := r.DB.Table("task").Select("spec", "count(*) as number")
 	if status > 0 {
 		sql = sql.Where("status = ?", status)
 	}
-	err := sql.Group("cron").Find(&cronCountList).Error
+	err := sql.Group("spec").Find(&specCountList).Error
 	if err != nil {
 		return nil, err
 	}
-	return cronCountList, err
+	return specCountList, err
 }
 
-func (r *Repository) ListStartedTaskByCron(cron string) ([]model.Task, error) {
+func (r *Repository) ListStartedTaskBySpec(spec string) ([]model.Task, error) {
 	var taskList []model.Task
-	err := r.DB.Model(&model.Task{}).Where("cron = ? and status = ?", cron, 1).Find(&taskList).Error
+	err := r.DB.Model(&model.Task{}).Where("spec = ? and status = ?", spec, 1).Find(&taskList).Error
 	return taskList, err
 }
 
-func (r *Repository) ListStartedCron() ([]string, error) {
-	var cronList []string
-	cronCountList, err := r.ListCronCount(1)
+func (r *Repository) ListStartedSpec() ([]string, error) {
+	var specList []string
+	specCountList, err := r.ListSpecCount(1)
 	if err != nil {
 		return nil, err
 	}
-	for _, task := range cronCountList {
-		cronList = append(cronList, task.Cron)
+	for _, v := range specCountList {
+		specList = append(specList, v.Spec)
 	}
-	return cronList, err
+	return specList, err
 }
 
 func (r *Repository) TryExecuteTask(task model.Task) (int64, error) {
 	sql := r.DB.Table("task").Where("id = ? and total = ?", task.Id, task.Total).Updates(map[string]interface{}{
 		"total":     gorm.Expr("total + ?", 1),
-		"time_lock": time.Now().UnixMilli() + base.Config().Server.ExecutedLockTime,
+		"time_lock": time.Now().UnixMilli() + base.Config().Db.ExecutedLockTime,
 	})
 	if sql.Error != nil {
 		return 0, sql.Error

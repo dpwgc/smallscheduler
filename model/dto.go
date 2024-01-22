@@ -9,7 +9,7 @@ type TaskCommand struct {
 	Status     int32             `json:"status"`
 	Name       string            `json:"name"`
 	Tag        string            `json:"tag"`
-	Cron       string            `json:"cron"`
+	Spec       string            `json:"spec"`
 	RetryMax   int32             `json:"retryMax"`
 	RetryCycle int32             `json:"retryCycle"`
 	Url        string            `json:"url"`
@@ -23,7 +23,7 @@ type TaskQuery struct {
 	Status    int    `json:"status"`
 	Name      string `json:"name"`
 	Tag       string `json:"tag"`
-	Cron      string `json:"cron"`
+	Spec      string `json:"spec"`
 	PageIndex int    `json:"pageIndex"`
 	PageSize  int    `json:"pageSize"`
 }
@@ -33,7 +33,7 @@ type TaskDTO struct {
 	Status     int32             `json:"status"`
 	Name       string            `json:"name"`
 	Tag        string            `json:"tag"`
-	Cron       string            `json:"cron"`
+	Spec       string            `json:"spec"`
 	RetryMax   int32             `json:"retryMax"`
 	RetryCycle int32             `json:"retryCycle"`
 	Url        string            `json:"url"`

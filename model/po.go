@@ -17,7 +17,7 @@ type Task struct {
 	CreatedAt  time.Time `gorm:"column:created_at;not null;type:datetime;default:CURRENT_TIMESTAMP;"`
 	UpdatedAt  time.Time `gorm:"column:updated_at;not null;type:datetime;default:CURRENT_TIMESTAMP;"`
 	Name       string    `gorm:"column:name;not null;type:varchar(80);default:'';"`
-	Cron       string    `gorm:"column:cron;index:idx_cron;not null;type:varchar(40);default:'';"`
+	Spec       string    `gorm:"column:spec;index:idx_spec;not null;type:varchar(40);default:'';"`
 	Tag        string    `gorm:"column:tag;index:idx_tag;not null;type:varchar(40);default:'';"`
 	RetryMax   int32     `gorm:"column:retry_max;not null;type:int(11);default:0;"`
 	RetryCycle int32     `gorm:"column:retry_cycle;not null;type:int(11);default:0;"`
@@ -30,8 +30,8 @@ type Task struct {
 	TimeLock   int64     `gorm:"column:time_lock;not null;type:bigint(20);default:0;"`
 }
 
-type CronCount struct {
-	Cron   string `gorm:"column:cron;" json:"cron"`
+type SpecCount struct {
+	Spec   string `gorm:"column:spec;" json:"spec"`
 	Number int64  `gorm:"column:number;" json:"number"`
 }
 

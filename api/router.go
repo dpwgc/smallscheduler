@@ -40,7 +40,7 @@ func InitHttpRouter() {
 	adminGroup.EasyGET("/task/:id", controller.GetTask)
 
 	adminGroup.EasyGET("/tags", controller.ListTag)
-	adminGroup.EasyGET("/crons", controller.ListCron)
+	adminGroup.EasyGET("/specs", controller.ListSpec)
 
 	adminGroup.EasyPOST("/task", controller.AddTask)
 	adminGroup.EasyPUT("/task/:id", controller.EditTask)
@@ -159,7 +159,7 @@ func basicAuthMiddleware() easierweb.Handle {
 		if !ok {
 			ctx.WriteJSON(http.StatusUnauthorized, model.CommonDTO{
 				Ok:  false,
-				Msg: "basic authentication failed",
+				Msg: "authentication failed",
 			})
 			return
 		}

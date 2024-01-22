@@ -17,7 +17,7 @@ func (c *Controller) buildTaskDTO(task model.Task) *model.TaskDTO {
 		Status:     task.Status,
 		Name:       task.Name,
 		Tag:        task.Tag,
-		Cron:       task.Cron,
+		Spec:       task.Spec,
 		RetryMax:   task.RetryMax,
 		RetryCycle: task.RetryCycle,
 		Url:        task.Url,
@@ -92,16 +92,16 @@ func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
 	if len(command.BackupUrl) > 0 && !isValidUrl(command.BackupUrl) {
 		return "backup url format is incorrect"
 	}
-	if len(command.Cron) == 0 {
-		return "cron is empty"
+	if len(command.Spec) == 0 {
+		return "spec is empty"
 	}
 	checkWorker := core.NewCronWorker()
 	defer func() {
 		checkWorker = nil
 	}()
-	_, err := checkWorker.AddFunc(command.Cron, func() {})
+	_, err := checkWorker.AddFunc(command.Spec, func() {})
 	if err != nil {
-		return err.Error()
+		return "spec error: " + err.Error()
 	}
 	if command.Method != "GET" && command.Method != "POST" && command.Method != "PUT" && command.Method != "PATCH" && command.Method != "DELETE" {
 		return "method is not match"
@@ -110,14 +110,14 @@ func (c *Controller) checkAddTaskCommand(command model.TaskCommand) string {
 }
 
 func (c *Controller) checkEditTaskCommand(command model.TaskCommand) string {
-	if len(command.Cron) > 0 {
+	if len(command.Spec) > 0 {
 		checkWorker := core.NewCronWorker()
 		defer func() {
 			checkWorker = nil
 		}()
-		_, err := checkWorker.AddFunc(command.Cron, func() {})
+		_, err := checkWorker.AddFunc(command.Spec, func() {})
 		if err != nil {
-			return "cron spec error: " + err.Error()
+			return "spec error: " + err.Error()
 		}
 	}
 	if len(command.Url) > 0 && !isValidUrl(command.Url) {
@@ -145,7 +145,7 @@ func (c *Controller) buildTask(id int64, command model.TaskCommand) model.Task {
 		Status:     command.Status,
 		Name:       command.Name,
 		Tag:        command.Tag,
-		Cron:       command.Cron,
+		Spec:       command.Spec,
 		RetryMax:   command.RetryMax,
 		RetryCycle: command.RetryCycle,
 		Url:        command.Url,
