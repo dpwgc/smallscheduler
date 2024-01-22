@@ -73,7 +73,6 @@ func InitHttpRouter() {
 func errorHandle() easierweb.ErrorHandle {
 	return func(ctx *easierweb.Context, err any) {
 		ctx.WriteJSON(http.StatusBadRequest, model.CommonDTO{
-			Ok:  false,
 			Msg: fmt.Sprintf("unexpected error: %s", err),
 		})
 	}
@@ -83,10 +82,13 @@ func responseHandle() easierweb.ResponseHandle {
 	return func(ctx *easierweb.Context, result any, err error) {
 		if err != nil {
 			ctx.WriteJSON(http.StatusBadRequest, model.CommonDTO{
-				Ok:  false,
 				Msg: err.Error(),
 			})
 		} else {
+			if result == nil {
+				ctx.NoContent(http.StatusNoContent)
+				return
+			}
 			if ctx.Method() == "POST" {
 				ctx.WriteJSON(http.StatusCreated, result)
 			} else {
@@ -158,14 +160,12 @@ func basicAuthMiddleware() easierweb.Handle {
 		user, pass, ok := ctx.Request.BasicAuth()
 		if !ok {
 			ctx.WriteJSON(http.StatusUnauthorized, model.CommonDTO{
-				Ok:  false,
 				Msg: "authentication failed",
 			})
 			return
 		}
 		if base.Config().Server.Username != user || base.Config().Server.Password != pass {
 			ctx.WriteJSON(http.StatusUnauthorized, model.CommonDTO{
-				Ok:  false,
 				Msg: "username or password error",
 			})
 			return

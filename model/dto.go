@@ -72,6 +72,5 @@ type CreatedDTO struct {
 }
 
 type CommonDTO struct {
-	Ok  bool   `json:"ok"`
 	Msg string `json:"msg"`
 }

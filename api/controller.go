@@ -167,7 +167,6 @@ func (c *Controller) Health(ctx *easierweb.Context) (*model.CommonDTO, error) {
 		return nil, errors.New("closed")
 	}
 	return &model.CommonDTO{
-		Ok:  true,
 		Msg: "running",
 	}, nil
 }
@@ -187,7 +186,6 @@ func (c *Controller) Shutdown(ctx *easierweb.Context) (*model.CommonDTO, error) 
 			os.Exit(1)
 		}()
 		return &model.CommonDTO{
-			Ok:  true,
 			Msg: fmt.Sprintf("shutdown after %v seconds", wait),
 		}, nil
 	}
