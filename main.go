@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"smallscheduler/api"
 	"smallscheduler/base"
-	"smallscheduler/core"
+	"smallscheduler/job"
 	"strings"
 )
 
@@ -20,7 +20,7 @@ func main() {
 	fmt.Println("[Log]", strings.ReplaceAll(base.LogYaml(), "\n", " "))
 
 	base.InitLog()
-	core.InitWorkers()
+	job.InitWorkers()
 
 	fmt.Println("[Console]", fmt.Sprintf("http://localhost:%v%s/web/index.html", base.Config().Server.Port, base.Config().Server.ContextPath))
 

@@ -1,9 +1,10 @@
-package core
+package job
 
 import (
+	"errors"
 	"github.com/robfig/cron/v3"
 	"smallscheduler/base"
-	"smallscheduler/storage"
+	"smallscheduler/store"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -14,12 +15,12 @@ const (
 )
 
 var workerFactory sync.Map
-var service *storage.Service
+var service *store.Service
 var taskEditVersion atomic.Value
 
 // InitWorkers 初始化工作者列表
 func InitWorkers() {
-	s, err := storage.NewService()
+	s, err := store.NewService()
 	if err != nil {
 		base.Logger.Error(err.Error())
 		return
@@ -93,4 +94,16 @@ func loadWorker(spec string) {
 // NewCronWorker 返回一个支持至 秒 级别的 cron
 func NewCronWorker() *cron.Cron {
 	return cron.New(cron.WithSeconds(), cron.WithChain())
+}
+
+func VerifySpec(spec string) error {
+	checkWorker := NewCronWorker()
+	defer func() {
+		checkWorker = nil
+	}()
+	_, err := checkWorker.AddFunc(spec, func() {})
+	if err != nil {
+		return errors.New("spec error: " + err.Error())
+	}
+	return nil
 }

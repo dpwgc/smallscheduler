@@ -14,7 +14,7 @@ import (
 // InitHttpRouter HTTP路由配置
 func InitHttpRouter() {
 
-	controller, err := NewController()
+	adapter, err := newAdapter()
 	if err != nil {
 		base.Logger.Error(err.Error())
 		return
@@ -29,23 +29,22 @@ func InitHttpRouter() {
 		RootPath:       base.Config().Server.ContextPath,
 	}).Use(logMiddleware())
 
-	router.EasyGET("/tasks", controller.ListTask)
-	router.EasyGET("/task/:id", controller.GetTask)
+	router.EasyGET("/tasks", adapter.ListTask)
+	router.EasyGET("/task/:id", adapter.GetTask)
 
-	router.EasyGET("/tags", controller.ListTag)
-	router.EasyGET("/specs", controller.ListSpec)
+	router.EasyGET("/tags", adapter.ListTag)
+	router.EasyGET("/specs", adapter.ListSpec)
 
-	router.EasyPOST("/task", controller.AddTask)
-	router.EasyPUT("/task/:id", controller.EditTask)
-	router.EasyDELETE("/task/:id", controller.DeleteTask)
+	router.EasyPOST("/task", adapter.AddTask)
+	router.EasyPUT("/task/:id", adapter.EditTask)
+	router.EasyDELETE("/task/:id", adapter.DeleteTask)
 
-	router.EasyGET("/execute/:id", controller.ExecuteTask)
+	router.EasyGET("/execute/:id", adapter.ExecuteTask)
 
-	router.EasyGET("/records", controller.ListRecord)
+	router.EasyGET("/records", adapter.ListRecord)
 
-	serverGroup := router.Group("")
-	serverGroup.EasyGET("/health", controller.Health)
-	serverGroup.EasyGET("/shutdown", controller.Shutdown)
+	router.EasyGET("/health", adapter.Health)
+	router.EasyGET("/shutdown", adapter.Shutdown)
 
 	if base.Config().Server.ConsoleEnable {
 		router.Static("/web/*filepath", "web")
@@ -57,10 +56,7 @@ func InitHttpRouter() {
 	} else {
 		err = router.Run(host)
 	}
-
-	if err != nil {
-		base.Logger.Error(err.Error())
-	}
+	base.Logger.Error(err.Error())
 }
 
 func errorHandle() easierweb.ErrorHandle {

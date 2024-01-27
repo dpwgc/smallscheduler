@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -28,6 +29,33 @@ type Task struct {
 	Header     string    `gorm:"column:header;type:text;"`
 	Total      int64     `gorm:"column:total;not null;type:bigint(20);default:0;"`
 	TimeLock   int64     `gorm:"column:time_lock;not null;type:bigint(20);default:0;"`
+}
+
+func NewTask() *Task {
+	return &Task{}
+}
+
+func (po *Task) Build(id int64, command TaskCommand) *Task {
+	headerJson := ""
+	if len(command.Header) > 0 {
+		headerBytes, err := json.Marshal(command.Header)
+		if err == nil {
+			headerJson = string(headerBytes)
+		}
+	}
+	po.Id = id
+	po.Status = command.Status
+	po.Name = command.Name
+	po.Tag = command.Tag
+	po.Spec = command.Spec
+	po.RetryMax = command.RetryMax
+	po.RetryCycle = command.RetryCycle
+	po.Url = command.Url
+	po.BackupUrl = command.BackupUrl
+	po.Method = command.Method
+	po.Body = command.Body
+	po.Header = headerJson
+	return po
 }
 
 type SpecCount struct {
