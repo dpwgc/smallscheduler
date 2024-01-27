@@ -15,9 +15,6 @@ type ConfigModel struct {
 		Port          int    `yaml:"port"`
 		ContextPath   string `yaml:"context-path"`
 		ConsoleEnable bool   `yaml:"console-enable"`
-		Auth          bool   `yaml:"auth"`
-		Username      string `yaml:"username"`
-		Password      string `yaml:"password"`
 		TLS           bool   `yaml:"tls"`
 		CertFile      string `yaml:"cert-file"`
 		KeyFile       string `yaml:"key-file"`

@@ -8,12 +8,6 @@ server:
   context-path: /v1
   # 是否启用网页控制台（设为false后不会加载前端网页文件）
   console-enable: true
-  # 是否使用安全验证
-  auth: true
-  # 登录账号
-  username: admin
-  # 登录密码
-  password: 123456
   # 是否开启tls
   tls: false
   # cert文件路径

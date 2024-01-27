@@ -29,26 +29,19 @@ func InitHttpRouter() {
 		RootPath:       base.Config().Server.ContextPath,
 	}).Use(logMiddleware())
 
-	var adminGroup *easierweb.Group
-	if base.Config().Server.Auth {
-		adminGroup = router.Group("", basicAuthMiddleware())
-	} else {
-		adminGroup = router.Group("")
-	}
+	router.EasyGET("/tasks", controller.ListTask)
+	router.EasyGET("/task/:id", controller.GetTask)
 
-	adminGroup.EasyGET("/tasks", controller.ListTask)
-	adminGroup.EasyGET("/task/:id", controller.GetTask)
+	router.EasyGET("/tags", controller.ListTag)
+	router.EasyGET("/specs", controller.ListSpec)
 
-	adminGroup.EasyGET("/tags", controller.ListTag)
-	adminGroup.EasyGET("/specs", controller.ListSpec)
+	router.EasyPOST("/task", controller.AddTask)
+	router.EasyPUT("/task/:id", controller.EditTask)
+	router.EasyDELETE("/task/:id", controller.DeleteTask)
 
-	adminGroup.EasyPOST("/task", controller.AddTask)
-	adminGroup.EasyPUT("/task/:id", controller.EditTask)
-	adminGroup.EasyDELETE("/task/:id", controller.DeleteTask)
+	router.EasyGET("/execute/:id", controller.ExecuteTask)
 
-	adminGroup.EasyGET("/execute/:id", controller.ExecuteTask)
-
-	adminGroup.EasyGET("/records", controller.ListRecord)
+	router.EasyGET("/records", controller.ListRecord)
 
 	serverGroup := router.Group("")
 	serverGroup.EasyGET("/health", controller.Health)
@@ -152,25 +145,5 @@ func logMiddleware() easierweb.Handle {
 			slog.String("body", body),
 			slog.Int("code", ctx.Code),
 			slog.String("result", result))
-	}
-}
-
-func basicAuthMiddleware() easierweb.Handle {
-	return func(ctx *easierweb.Context) {
-		user, pass, ok := ctx.Request.BasicAuth()
-		if !ok {
-			ctx.WriteJSON(http.StatusUnauthorized, model.CommonDTO{
-				Msg: "authentication failed",
-			})
-			return
-		}
-		if base.Config().Server.Username != user || base.Config().Server.Password != pass {
-			ctx.WriteJSON(http.StatusUnauthorized, model.CommonDTO{
-				Msg: "username or password error",
-			})
-			return
-		}
-		// 真正需要处理的业务
-		ctx.Next()
 	}
 }
