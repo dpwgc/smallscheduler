@@ -3,7 +3,7 @@ module smallscheduler
 go 1.21.4
 
 require (
-	github.com/dpwgc/easierweb v0.0.0-20240114094356-3b6499df0606
+	github.com/dpwgc/easierweb v1.0.2-0.20240114094356-3b6499df0606
 	github.com/robfig/cron/v3 v3.0.1
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1

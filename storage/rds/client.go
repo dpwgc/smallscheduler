@@ -1,11 +1,14 @@
 package rds
 
 import (
+	"context"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 	"smallscheduler/base"
 	"smallscheduler/model"
+	"time"
 )
 
 func newClient() (*gorm.DB, error) {
@@ -15,6 +18,7 @@ func newClient() (*gorm.DB, error) {
 		},
 		PrepareStmt:            true,
 		SkipDefaultTransaction: true,
+		Logger:                 &DBLogger{},
 	})
 	if err != nil {
 		return nil, err
@@ -40,4 +44,26 @@ func loadMetadata(db *gorm.DB) error {
 		}).Error
 	}
 	return nil
+}
+
+type DBLogger struct{}
+
+func (l *DBLogger) LogMode(logger.LogLevel) logger.Interface {
+	return l
+}
+
+func (l *DBLogger) Info(ctx context.Context, text string, args ...interface{}) {
+	base.Logger.Info(text, args)
+}
+
+func (l *DBLogger) Warn(ctx context.Context, text string, args ...interface{}) {
+	base.Logger.Warn(text, args)
+}
+
+func (l *DBLogger) Error(ctx context.Context, text string, args ...interface{}) {
+	base.Logger.Error(text, args)
+}
+
+func (l *DBLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
+
 }

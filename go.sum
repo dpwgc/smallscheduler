@@ -1,5 +1,7 @@
 github.com/dpwgc/easierweb v0.0.0-20240114094356-3b6499df0606 h1:xe/Gw1b+mY54XDk4/f23OqAQTpigDrir1ukskGalXoM=
 github.com/dpwgc/easierweb v0.0.0-20240114094356-3b6499df0606/go.mod h1:1jfBvolVx8bOuFuxJDLT/Epfoo05apQPMDav9ukUXWk=
+github.com/dpwgc/easierweb v1.0.2-0.20240114094356-3b6499df0606 h1:gpA3qP8rfNVhPWCYG73yw9t7OmhrRshG+1U0qqqXPcE=
+github.com/dpwgc/easierweb v1.0.2-0.20240114094356-3b6499df0606/go.mod h1:1jfBvolVx8bOuFuxJDLT/Epfoo05apQPMDav9ukUXWk=
 github.com/go-sql-driver/mysql v1.7.0 h1:ueSltNNllEqE3qcWBTD0iQd3IpL/6U+mJxLkazJ7YPc=
 github.com/go-sql-driver/mysql v1.7.0/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
 github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=

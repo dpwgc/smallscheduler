@@ -24,17 +24,15 @@
 
 ***
 
-## 将项目源码打包成可执行文件并运行
+## 编译并运行
 
-### 源代码打包
+### 源代码编译
 
 ```
 go build main.go
 ```
 
-### Mac/Linux环境运行
-
-将可执行文件`main`与`config.yaml`配置文件、`web`前端文件夹置于同一目录下
+#### 将编译后生成的可执行文件main与配置文件config.yaml、页面文件夹web放在同一目录下
 
 * 运行目录
   * main
@@ -44,25 +42,15 @@ go build main.go
     * js
     * index.html
 
+### Mac/Linux环境下运行
+
 cd 到运行目录，执行命令
 
 ```
 ./main
 ```
 
-![run](./image/run.png)
-
-### Windows环境运行
-
-将可执行文件`main.exe`与`config.yaml`配置文件、`web`前端文件夹置于同一目录下
-
-* 运行目录
-  * main.exe
-  * config.yaml
-  * web
-    * css
-    * js
-    * index.html
+### Windows环境下运行
 
 双击`main.exe`运行程序
 
